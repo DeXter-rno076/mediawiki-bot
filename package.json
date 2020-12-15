@@ -1,0 +1,30 @@
+{
+  "name": "mediawiki-bot",
+  "version": "0.0.1",
+  "description": "Bot program for editing and getting data from wikis using the MediaWiki API.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeXter-rno076/mediawiki-bot.git"
+  },
+  "keywords": [
+    "mediawiki",
+    "bot",
+    "wiki"
+  ],
+  "author": "DeXter",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DeXter-rno076/mediawiki-bot/issues"
+  },
+  "homepage": "https://github.com/DeXter-rno076/mediawiki-bot#readme",
+  "dependencies": {
+    "request": "^2.88.2"
+  }
+}
