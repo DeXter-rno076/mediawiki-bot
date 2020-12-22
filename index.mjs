@@ -23,7 +23,7 @@ export class Bot {
             loginreturnurl: this.url,
             format: 'json'
         }
-        return post('login', this.url, params);
+        return post('login', this.url, params, '');
     }
 
     async logout () {
@@ -31,8 +31,15 @@ export class Bot {
     }
 
     //======================= editing stuff
-    edit (TODO) {
-        this.editActions.edit(TODO);
+
+    /**
+     * @param title page title (required)
+     * @param text new page content (required)
+     * @param summary edit summary (optional)
+     * @param options other options for editing (optional)
+     */
+    edit (title, text, summary, options) {
+        return this.editActions.edit(title, text, summary, options);
     }
 
     revert (TODO) {

@@ -7,6 +7,11 @@ export function reqInit (input) {//todo not happy with this
     doConsoleOutputs = input;
 }
 
+/**
+ * 
+ * @param url 
+ * @param qs 
+ */
 export async function get (url, qs) {
     return new Promise ((resolve, reject) => {
         request.get({
@@ -21,6 +26,13 @@ export async function get (url, qs) {
     });
 }
 
+/**
+ * 
+ * @param action 
+ * @param url 
+ * @param postBody 
+ * @param qs 
+ */
 export async function post (action, url, postBody, qs) {
     return new Promise ((resolve, reject) => {
         request.post({

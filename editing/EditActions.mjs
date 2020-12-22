@@ -1,11 +1,13 @@
+import { _edit } from './edit.mjs';
+
 export class EditActions {
     constructor (url, dataActions) {
         this.url = url;
         this.dataActions = dataActions;
     }
 
-    async edit () {
-
+    edit (title, text, summary, options) {
+        return _edit(title, text, summary, options, this.dataActions, this.url);
     }
 
     async revert () {
