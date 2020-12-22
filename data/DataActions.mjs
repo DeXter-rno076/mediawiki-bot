@@ -1,4 +1,4 @@
-import { post } from '../getpost.mjs';
+import { get } from '../getpost.mjs';
 
 export class DataActions {
     constructor (url) {
@@ -14,7 +14,7 @@ export class DataActions {
         };
 
         try {
-            let body = await post('getToken', this.url, params, '');
+            let body = await get(this.url, params);
             let token = JSON.parse(body).query.tokens[type + 'token'];
 
             return token;
