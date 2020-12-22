@@ -1,4 +1,4 @@
-class EditActions {
+export class EditActions {
     constructor (url, dataActions) {
         this.url = url;
         this.dataActions = dataActions;

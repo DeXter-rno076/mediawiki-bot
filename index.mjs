@@ -1,20 +1,26 @@
-import { EditActions } from 'editing/index.mjs';
-import { DataActions } from 'data/index.mjs';
-import { reqInit, post } from 'getpost.mjs';
+import { EditActions } from './editing/EditActions.mjs';
+import { DataActions } from './data/DataActions.mjs';
+import { reqInit, post } from './getpost.mjs';
 
-class Bot {
+export class Bot {
     constructor (parameters) {
         setAttributes(this, parameters);
     }
 
     async login () {
-        let token = await dataActions.getToken('login');
+        let token;
+        try {
+            token = await this.dataActions.getToken('login');
+        } catch (error) {
+            throw 'error in getting login token: ' + error;
+        }
+        
         let params = {
             action: 'clientlogin',
             username: this.username,
             password: this.password,
             logintoken: token,
-            loginreturnurl: url,
+            loginreturnurl: this.url,
             format: 'json'
         }
         return post('login', this.url, params);
@@ -108,11 +114,11 @@ function setAttributes (obj, parameters) {
     if (parameters.summary !== undefined) {
         obj.summary = String(parameters.summary);
     }
-    if (parameters.doConsoleOutputs === true) {
-        reqInit(true);
-    } else {
-        obj.doConsoleOutputs = false;
-    }
+    if (parameters.doConsoleOutputs === false) {
+        reqInit(false);//TODO not happy with that
+    } //else {
+        //obj.doConsoleOutputs = false;
+    //}
 
     obj.dataActions = new DataActions(obj.url);
     obj.editActions = new EditActions(obj.url, obj.dataActions);
