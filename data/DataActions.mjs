@@ -1,4 +1,5 @@
 import { get } from '../getpost.mjs';
+import { _getWikitext } from './getWikitext.mjs';
 
 export class DataActions {
     constructor (url) {
@@ -21,5 +22,9 @@ export class DataActions {
         } catch (error) {
             throw error;
         }
+    }
+
+    getWikitext (page, section, url) {
+        return _getWikitext(page, section, url);
     }
 }

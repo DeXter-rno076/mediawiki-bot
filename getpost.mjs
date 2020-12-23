@@ -12,10 +12,10 @@ export function reqInit (input) {//todo not happy with this
  * @param url 
  * @param qs 
  */
-export async function get (url, qs) {
+export function get (url, qs) {
     return new Promise ((resolve, reject) => {
         request.get({
-            url,
+            url: String(url),
             qs,
         }, (error, response, body) => {
             if (error) {
@@ -33,10 +33,10 @@ export async function get (url, qs) {
  * @param postBody 
  * @param qs 
  */
-export async function post (action, url, postBody, qs) {
+export function post (action, url, postBody, qs) {
     return new Promise ((resolve, reject) => {
         request.post({
-            url,
+            url: String(url),
             qs,
             form: postBody
         }, (error, response, body) => {
