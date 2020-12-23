@@ -7,7 +7,7 @@ export class Bot {
         setAttributes(this, parameters);
     }
 
-    async login () {
+    async login (url = this.url) {
         let token;
         try {
             token = await this.dataActions.getToken('login');
@@ -20,7 +20,7 @@ export class Bot {
             username: this.username,
             password: this.password,
             logintoken: token,
-            loginreturnurl: this.url,
+            loginreturnurl: url,
             format: 'json'
         }
         return post('login', this.url, params, '');
@@ -33,21 +33,32 @@ export class Bot {
     //======================= editing stuff
 
     /**
-     * @param title page title (required)
-     * @param text new page content (required)
-     * @param summary edit summary (optional)
+     * @param title page title
+     * @param text new page content
+     * @param summary edit summary (default value is summary given to Bot constructor)
      * @param options other options for editing (optional)
+     * @param url url the edit request is sent to (default: url given to Bot constructor)
      */
-    edit (title, text, summary, options) {
-        return this.editActions.edit(title, text, summary, options);
+    edit (title, text, summary = this.summary, options, url = this.url) {
+        //todo add section functionality
+        return this.editActions.edit(title, text, summary, options, url);
     }
 
     revert (TODO) {
         this.editActions.revert(TODO);
     }
 
-    move (TODO) {
-        this.editActions.move(TODO);
+    /**
+     * @param from old name of the targeted page
+     * @param to new name of the targeted page
+     * @param summary edit summary (optional, default: summary given to Bot constructor)
+     * @param movetalk whether the corresponding talk page shall get moved too (default: true)
+     * @param movesubpages whether the corresponding subpages shall get moved too (default: true)
+     * @param noredirect whether a redirect from old name to new name shall be created (default: true)
+     * @param url url the move request is sent to (default: url given to Bot constructor)
+     */
+    move (from, to, summary = this.summary, movetalk = 'true', movesubpages = 'true', noredirect = 'true', url = this.url) {
+        return this.editActions.move(from, to, summary, movetalk, movesubpages, noredirect, url);
     }
     
     //====================== data stuff
