@@ -1,6 +1,7 @@
 import { post } from '../getpost.mjs';
 
 /**
+ * todo badtoken error appears very often when using edit asynchronisly very fast
  * 
  * @param title 
  * @param text 
@@ -27,16 +28,25 @@ export async function _edit (title, text, summary, options, url, dataActions) {
 
 function setParams (obj, token, title, text, summary, options) {
     if (options !== undefined) {
-        if (typeof options !== 'Object') {
+        if (typeof options !== 'object') {
             throw 'unallowed data type of options parameter in edit function, options must be of type object';
         }
         for (let prop in options) {
             //the mediawiki api treats non empty value as true and empty value as false
-            if (options[prop] == false) {
+            if (options[prop] === false || options[prop] === 'false') {
                 continue;
             }
             obj[prop] = String(options[prop]);
         }
+
+        if (options.nocreate === undefined || options.nocreate == true) {
+            //default to prevent accidently creating pages
+            //nocreate = false doesn't need extra handling because the nocreate value
+            //doesn't get copied from options over to obj
+            obj.nocreate = 'true';
+        }
+    } else {
+        obj.nocreate = 'true';//default to prevent accidently creating pages
     }
 
     obj.title = String(title);
@@ -51,13 +61,6 @@ function setParams (obj, token, title, text, summary, options) {
     obj.bot = 'true';
     obj.format = 'json';
     obj.token = token;
-
-    if (options.nocreate === undefined || options.nocreate == true) {
-        //default to prevent accidently creating pages
-        //nocreate = false doesn't need extra handling because the nocreate value
-        //doesn't get copied from options over to obj
-        obj.nocreate = 'true';
-    }
 }
 
 function checkMustHaveParams (title, text) {

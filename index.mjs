@@ -83,8 +83,8 @@ export class Bot {
      * 
      * @return page content as a string
      */
-    getWikitext (title, section) {
-        return this.dataActions.getWikitext(title, section);
+    getWikitext (title, section, url = this.url) {
+        return this.dataActions.getWikitext(title, section, url);
     }
 
     /**returns data about templates
@@ -131,6 +131,8 @@ function setAttributes (obj, parameters) {
     }
     if (parameters.summary !== undefined) {
         obj.summary = String(parameters.summary);
+    } else {
+        obj.summary = '';
     }
     if (parameters.doConsoleOutputs === false) {
         reqInit(false);//TODO not happy with that
