@@ -9,8 +9,15 @@ import { post } from '../getpost.mjs';
  * @param dataActions 
  * @param url 
  */
-export async function _edit (title, text, summary, options, dataActions, url) {
-    let token = await dataActions.getToken();
+export async function _edit (title, text, summary, options, url, dataActions) {
+    checkMustHaveParams(title, text);
+    
+    let token;
+    try {
+        token = await dataActions.getToken();
+    } catch (error) {
+        throw 'error in getting csrf token for editing: ' + error;
+    }
 
     let params = {};
     setParams(params, token, title, text, summary, options);
@@ -20,18 +27,24 @@ export async function _edit (title, text, summary, options, dataActions, url) {
 
 function setParams (obj, token, title, text, summary, options) {
     if (options !== undefined) {
+        if (typeof options !== 'Object') {
+            throw 'unallowed data type of options parameter in edit function, options must be of type object';
+        }
         for (let prop in options) {
             //the mediawiki api treats non empty value as true and empty value as false
             if (options[prop] == false) {
                 continue;
             }
-            obj[prop] = options[prop];
+            obj[prop] = String(options[prop]);
         }
     }
 
-    obj.title = title;
-    obj.text = text;
-    obj.summary = summary;
+    obj.title = String(title);
+    obj.text = String(text);
+    
+    if (summary !== '') {
+        obj.summary = String(summary);
+    }
 
     //default propertys
     obj.action = 'edit';
@@ -45,7 +58,10 @@ function setParams (obj, token, title, text, summary, options) {
         //doesn't get copied from options over to obj
         obj.nocreate = 'true';
     }
-    if (obj.summary === undefined) {
-        console.warn('no summary set: it is highly encouraged to set a summary for bot edits');
+}
+
+function checkMustHaveParams (title, text) {
+    if (title === undefined || title === '' || text === undefined) {
+        throw 'title and text parameters must be set for editing';
     }
 }

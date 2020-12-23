@@ -1,4 +1,5 @@
 import { _edit } from './edit.mjs';
+import { _move } from './move.mjs';
 
 export class EditActions {
     constructor (url, dataActions) {
@@ -6,15 +7,24 @@ export class EditActions {
         this.dataActions = dataActions;
     }
 
-    edit (title, text, summary, options) {
-        return _edit(title, text, summary, options, this.dataActions, this.url);
+    edit (title, text, summary, options, url) {
+        checkSum(summary);
+        return _edit(title, text, summary, options, url, this.dataActions);
     }
 
     async revert () {
 
     }
 
-    async move () {
+    move (from, to, summary, movetalk, movesubpages, noredirect, url) {
+        checkSum(summary);
+        return _move(from, to, summary, movetalk,
+            movesubpages, noredirect, url, this.dataActions);
+    }
+}
 
+function checkSum (summary) {
+    if (summary == '') {
+        console.warn('no summary set, it is highly encouraged to use a summary for bot edits');
     }
 }
