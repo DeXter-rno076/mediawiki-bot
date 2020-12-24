@@ -7,7 +7,7 @@ export class EditActions {
         this.dataActions = dataActions;
     }
 
-    edit (title, text, summary, options, url) {
+    edit (title, text, summary, options, url = this.url) {
         checkSum(summary);
         return _edit(title, text, summary, options, url, this.dataActions);
     }
@@ -16,7 +16,7 @@ export class EditActions {
 
     }
 
-    move (from, to, summary, movetalk, movesubpages, noredirect, url) {
+    move (from, to, summary, movetalk, movesubpages, noredirect, url = this.url) {
         checkSum(summary);
         return _move(from, to, summary, movetalk,
             movesubpages, noredirect, url, this.dataActions);
