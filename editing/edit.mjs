@@ -22,6 +22,9 @@ export async function _edit (title, text, summary, options, url, dataActions) {
 
     let params = {};
     setParams(params, token, title, text, summary, options);
+    if (options.section !== undefined) {
+        await dataActions.setSectionIndex(params, options.section);
+    }
 
     return post('edit', url, params, '');
 }
@@ -33,7 +36,8 @@ function setParams (obj, token, title, text, summary, options) {
         }
         for (let prop in options) {
             //the mediawiki api treats non empty value as true and empty value as false
-            if (options[prop] === false || options[prop] === 'false') {
+            if (options[prop] === false || options[prop] === 'false' || prop === 'section') {
+                //section parameter gets handled seperatly
                 continue;
             }
             obj[prop] = String(options[prop]);

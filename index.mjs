@@ -36,11 +36,10 @@ export class Bot {
      * @param title page title
      * @param text new page content
      * @param summary edit summary (default value is summary given to Bot constructor)
-     * @param options other options for editing (optional)
+     * @param options other options for editing (optional) (if you're editing one section don't forget the section heading, otherwise it will be removed by the edit)
      * @param url url the edit request is sent to (default: url given to Bot constructor)
      */
-    edit (title, text, summary = this.summary, options, url = this.url) {
-        //todo add section functionality
+    edit (title, text, summary = this.summary, options, url) {
         return this.editActions.edit(title, text, summary, options, url);
     }
 
@@ -57,7 +56,7 @@ export class Bot {
      * @param noredirect whether a redirect from old name to new name shall be created (default: true)
      * @param url url the move request is sent to (default: url given to Bot constructor)
      */
-    move (from, to, summary = this.summary, movetalk = 'true', movesubpages = 'true', noredirect = 'true', url = this.url) {
+    move (from, to, summary = this.summary, movetalk = 'true', movesubpages = 'true', noredirect = 'true', url) {
         return this.editActions.move(from, to, summary, movetalk, movesubpages, noredirect, url);
     }
     
@@ -72,8 +71,8 @@ export class Bot {
      * @return {Object} array of objects that contain data about the targeted category members
      *  TODO show how the objects are build up
      */
-    getCatMembers (category, type = 'page', limit = 'max', noTemplates = true) {
-        return this.dataActions.getCatMembers(category, type, limit, noTemplates);
+    getCatMembers (category, type = 'page', limit = 'max', noTemplates = true, url) {
+        return this.dataActions.getCatMembers(category, type, limit, noTemplates, url);
     }
 
     /**returns the source text of a page
@@ -83,7 +82,7 @@ export class Bot {
      * 
      * @return page content as a string
      */
-    getWikitext (title, section, url = this.url) {
+    getWikitext (title, section, url) {
         return this.dataActions.getWikitext(title, section, url);
     }
 
@@ -103,10 +102,23 @@ export class Bot {
      * @param {String} page title of the targeted page
      * 
      * @return array containing data about the sections
-     *  TODO how is the array build up?
+     *  the returned array consists of objects that are build up like this:
+     * {
+     *     toclevel: 1,
+     *     level: '2',
+     *     line: 'Trivia',
+     *     number: '2',
+     *     index: '2',
+     *     fromtitle: 'Test_Article',
+     *     byteoffset: 47,
+     *     anchor: 'Trivia'
+     * }
+     * this corresponds to the section "Trivia" in the article "Test Article"
+     * that is the second section in the page and has level 2 (means "== section name ==")
+     * todo explain the other parameters
      */
-    getSections (page) {
-        return this.dataActions.getSectins(page);
+    getSections (page, url) {
+        return this.dataActions.getSections(page, url);
     }
 }
 
