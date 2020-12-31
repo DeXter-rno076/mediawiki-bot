@@ -1,10 +1,13 @@
+import fs from 'fs';
 import { EditActions } from './editing/EditActions.mjs';
 import { DataActions } from './data/DataActions.mjs';
 import { reqInit, post } from './getpost.mjs';
+import { logInit, newJob, saveConsoleOutput } from './logapi.mjs';
 
 export class Bot {
     constructor (parameters) {
         setAttributes(this, parameters);
+        setupLogDir(this);
     }
 
     async login (url = this.url) {
@@ -23,7 +26,7 @@ export class Bot {
             loginreturnurl: url,
             format: 'json'
         }
-        return post('login', this.url, params, '');
+        return post('login', this.url, params, '', this.taskId);
     }
 
     async logout () {
@@ -33,13 +36,17 @@ export class Bot {
     //======================= editing stuff
 
     /**
+     * todo switch places of summary and options (summary will often be empty because of global summary)
      * @param title page title
      * @param text new page content
      * @param summary edit summary (default value is summary given to Bot constructor)
      * @param options other options for editing (optional) (if you're editing one section don't forget the section heading, otherwise it will be removed by the edit)
      * @param url url the edit request is sent to (default: url given to Bot constructor)
      */
-    edit (title, text, summary = this.summary, options, url) {
+    edit (title, text, summary = '', options, url) {
+        if (summary === '') {
+            summary = this.summary;
+        }
         return this.editActions.edit(title, text, summary, options, url);
     }
 
@@ -56,7 +63,10 @@ export class Bot {
      * @param noredirect whether a redirect from old name to new name shall be created (default: true)
      * @param url url the move request is sent to (default: url given to Bot constructor)
      */
-    move (from, to, summary = this.summary, movetalk = 'true', movesubpages = 'true', noredirect = 'true', url) {
+    move (from, to, summary = '', movetalk = 'true', movesubpages = 'true', noredirect = 'true', url) {
+        if (summary === '') {
+            summary = this.summary;
+        }
         return this.editActions.move(from, to, summary, movetalk, movesubpages, noredirect, url);
     }
     
@@ -120,6 +130,17 @@ export class Bot {
     getSections (page, url) {
         return this.dataActions.getSections(page, url);
     }
+
+    /**saves msg to the log file and writes msg on the console if doConsoleOutputs is set to true
+     * useful for troubleshooting after big bot tasks
+     * @param msg
+     */
+    saveMsg (msg) {
+        if (this.doConsoleOutputs) {
+            console.log(msg);
+        }
+        saveConsoleOutput(msg, this.taskId);
+    }
 }
 
 /**sets the attributes of obj
@@ -148,10 +169,22 @@ function setAttributes (obj, parameters) {
     }
     if (parameters.doConsoleOutputs === false) {
         reqInit(false);//TODO not happy with that
-    } //else {
-        //obj.doConsoleOutputs = false;
-    //}
+    } else {
+        obj.doConsoleOutputs = true;
+    }
 
     obj.dataActions = new DataActions(obj.url);
     obj.editActions = new EditActions(obj.url, obj.dataActions);
+}
+
+function setupLogDir (bot) {
+    try {
+        fs.accessSync('./botlogs');
+    } catch (error) {
+        //if botlogs dir doesn't exist, an error is thrown and the dir is set up
+        logInit();
+        //TODO give the existing txt files new names or put them in an archive directory or similar, otherwise they would get overwritten
+    }
+    newJob(bot);//creates new job and sets taskId for the logging stuff
+    bot.editActions.taskId = bot.taskId;
 }

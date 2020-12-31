@@ -1,6 +1,8 @@
 import { post } from '../getpost.mjs';
 
-export async function _move (from, to, summary, movetalk, movesubpages, noredirect, url, dataActions) {
+export async function _move (from, to, summary, movetalk, movesubpages, noredirect, url, callerObj) {
+    const dataActions = callerObj.dataActions;
+
     checkMustHaveParams(from, to);
 
     let token;
@@ -13,7 +15,7 @@ export async function _move (from, to, summary, movetalk, movesubpages, noredire
     let params = {};
     setParams(params, arguments);
 
-    return post('move', url, {token}, params);
+    return post('move', url, {token}, params, callerObj.taskId);
 }
 
 function setParams (obj, args) {

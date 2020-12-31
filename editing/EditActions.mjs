@@ -9,7 +9,7 @@ export class EditActions {
 
     edit (title, text, summary, options, url = this.url) {
         checkSum(summary);
-        return _edit(title, text, summary, options, url, this.dataActions);
+        return _edit(title, text, summary, options, url, this);
     }
 
     async revert () {
@@ -19,7 +19,7 @@ export class EditActions {
     move (from, to, summary, movetalk, movesubpages, noredirect, url = this.url) {
         checkSum(summary);
         return _move(from, to, summary, movetalk,
-            movesubpages, noredirect, url, this.dataActions);
+            movesubpages, noredirect, url, this);
     }
 }
 
