@@ -10,7 +10,9 @@ import { post } from '../getpost.mjs';
  * @param dataActions 
  * @param url 
  */
-export async function _edit (title, text, summary, options, url, dataActions) {
+export async function _edit (title, text, summary, options, url, callerObj) {
+    const dataActions = callerObj.dataActions;
+    
     checkMustHaveParams(title, text);
     
     let token;
@@ -22,11 +24,11 @@ export async function _edit (title, text, summary, options, url, dataActions) {
 
     let params = {};
     setParams(params, token, title, text, summary, options);
-    if (options.section !== undefined) {
+    if (options !== undefined && options.section !== undefined) {
         await dataActions.setSectionIndex(params, options.section);
     }
 
-    return post('edit', url, params, '');
+    return post('edit', url, params, '', callerObj.taskId);
 }
 
 function setParams (obj, token, title, text, summary, options) {

@@ -1,3 +1,4 @@
+import { saveConsoleOutput } from './logapi.mjs';
 import req from 'request';
 const request = req.defaults({jar: true});//cookie handling
 
@@ -33,7 +34,7 @@ export function get (url, qs) {
  * @param postBody 
  * @param qs 
  */
-export function post (action, url, postBody, qs) {
+export function post (action, url, postBody, qs, taskId) {
     return new Promise ((resolve, reject) => {
         request.post({
             url: String(url),
@@ -43,9 +44,13 @@ export function post (action, url, postBody, qs) {
             if (error) {
                 reject(error);
             }
+            const message = action + ': ' + body;
             if (doConsoleOutputs && action !== 'getToken') {
-                console.log(action + ': ' + body);
+                console.log(message);
             }
+
+            saveConsoleOutput(message, taskId);
+
             resolve(body);
         });
     });
