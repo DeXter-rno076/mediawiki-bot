@@ -1,6 +1,7 @@
 import { get } from '../getpost.mjs';
 import { _getWikitext } from './getWikitext.mjs';
 import { _getSections } from './getSections.mjs';
+import { _getCatMembers } from './getCatMembers.mjs';
 
 export class DataActions {
     constructor (url) {
@@ -27,6 +28,10 @@ export class DataActions {
 
     getWikitext (page, section, url = this.url) {
         return _getWikitext(page, section, url, this);
+    }
+
+    getCatMembers (cat, data, limit, ns, url = this.url) {
+        return _getCatMembers(cat, data, limit, ns, url);
     }
 
     getSections (page, url = this.url) {
