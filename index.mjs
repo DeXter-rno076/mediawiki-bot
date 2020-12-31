@@ -5,6 +5,7 @@ import { reqInit, post } from './getpost.mjs';
 import { logInit, newJob, saveConsoleOutput } from './logapi.mjs';
 
 export class Bot {
+    //TODO: do all the default values at one layer, not split like now
     constructor (parameters) {
         setAttributes(this, parameters);
         setupLogDir(this);
@@ -73,19 +74,21 @@ export class Bot {
     //====================== data stuff
     /**returns the members of a category
      * 
-     * @param {String} category name of the targeted category
-     * @param {String} type type of the returned pages ('page', 'subcat' or 'file')
-     * @param {Integer, String} limit maximum number of returned pages per request (default: 'max')
-     * @param {Boolean} noTemplates whether templates should be ignored
+     * @param {String} category name of the targeted category (the namespace prefix MUST be set, e. g. 'Category:Test')
+     * TODO rename data param
+     * @param {Array} data which types of data shall be included in the objects that are returned (default: ['title'], allowed element values: 'ids', 'title', 'sortkey', 'sortkeyprefix', 'type', 'timestamp', 'ns')
+     * @param {Integer, String} limit maximum number of returned pages per request (default: 'max' (equivalent to 500))
+     * @param {Object} ns pages from which namespaces shall be included, object with the attribute includeonly (only the given namespaces) or excludeonly (all but the given namespaces) with an array containing the namespace names as value (default: {includeonly: ['Main']})
+     * @param {String} url url the requests are sent to (default: url given to Bot constructor)
      * 
-     * @return {Object} array of objects that contain data about the targeted category members
+     * @return {Object} array of objects or strings that contain data about the targeted category members (objects if multiple types of data are wanted, strings if only one type)
      *  TODO show how the objects are build up
      */
-    getCatMembers (category, type = 'page', limit = 'max', noTemplates = true, url) {
-        return this.dataActions.getCatMembers(category, type, limit, noTemplates, url);
+    getCatMembers (category, data = ['title'], limit = 'max', ns = {includeonly: ['Main']}, url) {
+        return this.dataActions.getCatMembers(category, data, limit, ns, url);
     }
 
-    /**returns the source text of a page
+    /**returns the sourcetext of a page
      * 
      * @param {String} title title of the targeted page
      * @param {String} section name of the targeted section (optional)
@@ -132,7 +135,7 @@ export class Bot {
     }
 
     /**saves msg to the log file and writes msg on the console if doConsoleOutputs is set to true
-     * useful for troubleshooting after big bot tasks
+     * useful for fixing errors after big bot tasks
      * @param msg
      */
     saveMsg (msg) {
