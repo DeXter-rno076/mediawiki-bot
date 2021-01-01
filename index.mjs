@@ -2,13 +2,14 @@ import fs from 'fs';
 import { EditActions } from './editing/EditActions.mjs';
 import { DataActions } from './data/DataActions.mjs';
 import { reqInit, post } from './getpost.mjs';
-import { logInit, newJob, saveConsoleOutput } from './logapi.mjs';
+import { logInit, saveConsoleOutput } from './logapi.mjs';
 
 export class Bot {
     //TODO: do all the default values at one layer, not split like now
+    //TODO: some method names could be better
     constructor (parameters) {
         setAttributes(this, parameters);
-        setupLogDir(this);
+        logInit(this);
     }
 
     async login (url = this.url) {
@@ -82,7 +83,8 @@ export class Bot {
      * @param {String} url url the requests are sent to (default: url given to Bot constructor)
      * 
      * @return {Object} array of objects or strings that contain data about the targeted category members (objects if multiple types of data are wanted, strings if only one type)
-     *  TODO show how the objects are build up
+     * if multiple types are selected the objects in the array have an attribute for every type
+     * if the titles are given the toString methods of the objects return the title
      */
     getCatMembers (category, data = ['title'], limit = 'max', ns = {includeonly: ['Main']}, url) {
         return this.dataActions.getCatMembers(category, data, limit, ns, url);
@@ -107,6 +109,7 @@ export class Bot {
      * @return TODO
      */
     getTemplates (page, section) {
+        //TODO
         return this.dataActions.getTemplates(page, section);
     }
 
@@ -180,7 +183,7 @@ function setAttributes (obj, parameters) {
     obj.editActions = new EditActions(obj.url, obj.dataActions);
 }
 
-function setupLogDir (bot) {
+/* function setupLogDir (bot) {
     try {
         fs.accessSync('./botlogs');
     } catch (error) {
@@ -190,4 +193,4 @@ function setupLogDir (bot) {
     }
     newJob(bot);//creates new job and sets taskId for the logging stuff
     bot.editActions.taskId = bot.taskId;
-}
+} */
