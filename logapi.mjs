@@ -74,7 +74,9 @@ function cleanUpLogFiles () {
         const taskFilePath = logDirPath + '/consoleOutputs/' + taskId + '.txt';
         const logFile = fs.readFileSync(taskFilePath, {encoding: 'utf8'});
 
-        if (logFile.split('\n').length <= 2) {
+        //a file with only a login message has two lines
+        //a file with only a login and a logout message has three lines
+        if (logFile.split('\n').length <= 2 || (logFile.split('\n').length <= 3 && logFile.search('logout') !== -1)) {
             //if only one or none lines were written to the log file it gets deleted
             fs.unlinkSync(taskFilePath);
             mainlog.splice(i, 1);

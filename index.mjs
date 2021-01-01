@@ -32,7 +32,19 @@ export class Bot {
     }
 
     async logout () {
-        //TODO
+        let token;
+        try {
+            token = await this.dataActions.getToken();
+        } catch (error) {
+            throw 'error in getting csrf token for logout: ' + error;
+        }
+
+        let params = {
+            action: 'logout',
+            token,
+            format: 'json'
+        }
+        return post('logout', this.url, params, '', this.taskId);
     }
 
     //======================= editing stuff
