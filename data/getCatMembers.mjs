@@ -27,6 +27,9 @@ export async function _getCatMembers (cat, data, limit, ns, url) {
     if (!data.includes('ns')) {
         removeNamespaceAttr(pages, data);
     }
+    if (data.length > 1 && data.includes('title')) {
+        setToStringMethods(pages);
+    }
 
     return pages;
 }
@@ -133,5 +136,13 @@ function removeNamespaceAttr (pagesArr, data) {
         for (let i = 0; i < pagesArr.length; i++) {
             delete pagesArr[i].ns;
         }
+    }
+}
+
+function setToStringMethods (pagesArr) {
+    for (let item of pagesArr) {
+        item.toString = function () {
+            return this.title;
+        };
     }
 }

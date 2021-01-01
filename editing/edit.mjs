@@ -1,7 +1,7 @@
 import { post } from '../getpost.mjs';
 
 /**
- * todo badtoken error appears very often when using edit asynchronisly very fast
+ * todo badtoken error appears very often when using edit asynchronisly very fast (when waiting for each edit, it appears very rarely)
  * 
  * @param title 
  * @param text 
