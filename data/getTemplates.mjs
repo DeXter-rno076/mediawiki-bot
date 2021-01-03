@@ -41,22 +41,15 @@ export async function _getTemplates (title, section, url, getWikitext) {
         throw 'error in getting xml parse tree: ' + error;
     }
 
-    return parseXMLtoJSON(reqBody);
+    let parsedXML = parseToObjectTree(reqBody.expandtemplates.parsetree);
+
+    return createTemplateStructure(parsedXML);
 }
 
-function parseXMLtoJSON (reqBody) {
-    const xmlParsetree = reqBody.expandtemplates.parsetree;
-    let content = /<root>(.+)<\/root>/.exec(xmlParsetree)['1'];
-
+function createTemplateStructure (reqBody) {
     const returnArr = [];
 
-    //TODO won't work with regex
-    let templRegex = /<template>(.+?)<\/template>/;//TODO handle <template linestart="x">
-    while (templRegex.test(content)) {
-        returnArr.push(parseTemplate(templRegex.exec(content)['1']));
-
-        content = content.replace(templRegex, '');
-    }
+    
 
     return returnArr;
 }
@@ -64,12 +57,7 @@ function parseXMLtoJSON (reqBody) {
 function parseTemplate (templCode) {
     let returnObj = new TemplateObj(getTemplTitle(templCode));
 
-    //TODO won't work with regex
-    let paramRegex = /<part>(.+?)<\/part>/;
-    while (paramRegex.test(templCode)) {
-        parseParam(returnObj, paramRegex.exec(templCode)['1']);
-        templCode = templCode.replace(paramRegex, '');
-    }
+    
 
     return returnObj;
 }
@@ -133,7 +121,7 @@ class ParamObj {
 
 
 //======================================================================
-//general xml parser
+//general xml parser (not 100 % general, the starting point (rootObj) is built for XML code sent from MediaWiki servers)
 //todo: completely understand the index stuff and comment it (instead of only changing something because it'll probably fix it without completely understanding why)
 
 function parseToObjectTree (xmlCode) {
@@ -146,12 +134,14 @@ function parseToObjectTree (xmlCode) {
     };
     handleAttributes(rootObj, xmlCode);//set attributes of the root tag if there are any
 
-    doStuff(rootObj, xmlCode.substring(xmlCode.indexOf('>') + 1));
+    parseTagCode(rootObj, xmlCode.substring(xmlCode.indexOf('>') + 1));
     
+    replaceUnicodeAndHTMLEntities(rootObj);//replace &gt; &lt; &quot; and unicode
+
     return rootObj;
 }
 
-function doStuff (curRoot, code) {
+function parseTagCode (curRoot, code) {
     for (let i = 0; i < code.length; i++) {
         if (code.charAt(i) !== '<') {
             curRoot.content.text += code.charAt(i);
@@ -214,7 +204,7 @@ function handleNormalTag (curRoot, code, tagCounter) {
     let tagCode = code.substring(openingTagLength + 1);
     //returns something because the i var of the loop in the calling function must be increased by the length of the handled tag
     //otherwise it would handle the tag when it finds the < and then it would just continue with the character after the <
-    return openingTagLength + doStuff(tagObj, tagCode);//handle the content inside the currently targeted tag
+    return openingTagLength + parseTagCode(tagObj, tagCode);//handle the content inside the currently targeted tag
 }
 
 function handleAttributes (obj, code) {
@@ -266,5 +256,20 @@ function checkSingleTag (str) {
         return true;
     } else {
         return false;
+    }
+}
+
+function replaceUnicodeAndHTMLEntities (rootObj) {
+    if (rootObj.content === undefined) {
+        return;
+    }
+    const rootContent = rootObj.content;
+    
+    //replacing unicode
+    rootContent.text = rootContent.text.normalize();
+    //replacinc common HTML entities
+    rootContent.text = rootContent.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    for (let tag in rootObj.content.tags) {
+        replaceUnicodeAndHTMLEntities(tag);
     }
 }
