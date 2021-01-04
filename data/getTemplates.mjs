@@ -1,28 +1,5 @@
 import { get } from '../getpost.mjs';
 
-/*
-Notes: 
-returns Array of template objects (use some kind of class to create this)
-[
-    {
-        title: <TemplateName>
-        <param1>: {
-            text: 'blablabla some text ##TEMPLATE1## blablabla',
-            TEMPLATE1: {
-                title: ...
-                ...
-            }
-            toString: function () {
-                return this.text;
-            }
-        }
-        toWikitext: () => {
-            transfer this template into valid wikitext
-        }
-    }
-]
-*/
-
 export async function _getTemplates (title, section, url, getWikitext) {
     const articleText = await getWikitext(title, section, url);
 
@@ -36,7 +13,7 @@ export async function _getTemplates (title, section, url, getWikitext) {
 
     let reqBody;
     try {
-        reqBody = await get(url, params);
+        reqBody = JSON.parse(await get(url, params));
     } catch (error) {
         throw 'error in getting xml parse tree: ' + error;
     }
@@ -46,34 +23,14 @@ export async function _getTemplates (title, section, url, getWikitext) {
     return createTemplateStructure(parsedXML);
 }
 
-function createTemplateStructure (reqBody) {
-    const returnArr = [];
-
-    
-
-    return returnArr;
-}
-
-function parseTemplate (templCode) {
-    let returnObj = new TemplateObj(getTemplTitle(templCode));
-
-    
-
-    return returnObj;
-}
-
-function parseParam (obj, paramCode) {
-    //TODO
-    //don't forgat to set text parameter
-    //don't forget to replace templates in text with ##TEMPLATE<n>##
-
-    obj.addParam(paramName, paramObj);
-}
-
 class TemplateObj {
-    constructor(title) {
+    constructor(title, index) {
         this.title = title;
         this.paramList = [];
+
+        if (index !== undefined) {
+            this.index = index;
+        }
     }
 
     addParam (paramName, paramObj) {
@@ -81,15 +38,20 @@ class TemplateObj {
         this.paramList.push(paramName);
     }
 
-    toWikitext () {
+    //does not set any whitespace itself
+    toWikitext (removeWhitespace) {
         let templateCode = '{{' + this.title;
         
         for (let param of this.paramList) {
             templateCode += '|';
-            if (param.indexed) {
+            if (this[param].indexed) {
                 templateCode += this[param];
             } else {
-                templateCode += param + '=' + this[param];
+                if (removeWhitespace) {
+                    templateCode += param.trim() + '=' + this[param].toWikitext(true).trim();
+                } else {
+                    templateCode += param + '=' + this[param];
+                }
             }
         }
 
@@ -107,21 +69,113 @@ class ParamObj {
         this.title = title;
         this.indexed = indexed;
         this.text = '';
+        this.templates = [];
     }
 
-    toWikitext () {
-        //TODO
-        //return this.text with the template placeholders replaced with the templates in wikitext format 
+    addTempl (templObj) {
+        this.templates.push(templObj);
+    }
+
+    toWikitext (removeWhitespace) {
+        let wikitext = this.text;
+
+        for (let template of this.templates) {
+            let templateCode = template.toWikitext(removeWhitespace);
+            wikitext = wikitext.replace('##TEMPLATE:' + template.index + '##', templateCode);
+        }
+
+        return wikitext;
     }
 
     toString () {
-        return this.text;
+        return this.toWikitext();
     }
 }
 
+function createTemplateStructure (objectTree) {
+    const templArr = [];
+
+    if (objectTree.content.tags.length === 0) {
+        return templArr;
+    }
+
+    for (let template of objectTree.content.tags) {
+        if (template.title !== 'template') {
+            //TODO remove this after testing
+            console.warn('unwanted tag type in root tag array (only \'template\' allowed): ' + template.title);
+            continue;
+        }
+        let templObj = parseTemplate(template);
+        templArr.push(templObj);
+    }
+
+    return templArr;
+}
+
+function parseTemplate (templCode) {
+    let templObject = new TemplateObj(getTemplTitle(templCode), templCode.index);
+
+    const paramArr = templCode.content.tags.filter((item) => {
+        return item.title === 'part';
+    });
+
+    for (let param of paramArr) {
+        setParam(templObject, param);
+    }
+
+    return templObject;
+}
+
+function setParam (obj, paramCode) {
+    let { name, isIndexed } = getParamName(paramCode);
+    
+    let paramObj = new ParamObj(name, isIndexed);
+    const valueObj = paramCode.content.tags.find((item) => {
+        return item.title === 'value';
+    });
+    paramObj.text = valueObj.content.text;
+
+    for (let tag of valueObj.content.tags) {
+        if (tag.title !== 'template') {
+            //TODO remove this after testing
+            console.warn('unknown tag type in param value: ' + tag.title);
+            continue;
+        }
+        paramObj.addTempl(parseTemplate(tag));
+    }
+
+    obj.addParam(paramObj.title, paramObj);
+}
+
+function getTemplTitle (code) {
+    let nameObj = code.content.tags.find((item) => {
+        return item.title === 'title';
+    })
+
+    return nameObj.content.text;
+}
+
+function getParamName (paramCode) {
+    let nameObj = paramCode.content.tags.find((item) => {
+        return item.title === 'name';
+    });
+
+    if (nameObj.attr !== undefined && nameObj.attr.index !== undefined){
+        //checks if the param name is an index
+        return {
+            name: nameObj.attr.index,
+            isIndexed: true
+        };
+    }
+
+    return {
+        name: nameObj.content.text,
+        isIndexed: false
+    };
+}
 
 //======================================================================
-//general xml parser (not 100 % general, the starting point (rootObj) is built for XML code sent from MediaWiki servers)
+//kinda general xml parser (some aspects are specialised for this use case)
 //todo: completely understand the index stuff and comment it (instead of only changing something because it'll probably fix it without completely understanding why)
 
 function parseToObjectTree (xmlCode) {
@@ -174,7 +228,7 @@ function handleSingleTag (curRoot, code) {
     }
 
     rootContent.tags.push(tagObj);
-    rootContent.text += '##PLACEHOLDER:' + tagIndex + '##';
+    rootContent.text += '##TEMPLATE:' + tagIndex + '##';
 
     handleAttributes(tagObj, code);
     return code.indexOf('>');
@@ -195,7 +249,7 @@ function handleNormalTag (curRoot, code, tagCounter) {
     };
 
     rootContent.tags.push(tagObj);
-    rootContent.text += '##PLACEHOLDER:' + tagIndex + '##';
+    rootContent.text += '##TEMPLATE:' + tagIndex + '##';
 
     //if tag has attributes, attr = {} tagObj is set and the attributes get added with their values
     handleAttributes(tagObj, code);//< and > at start and end shouldn't cause problems
