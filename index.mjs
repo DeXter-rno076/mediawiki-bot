@@ -7,6 +7,7 @@ import { logInit, saveConsoleOutput } from './logapi.mjs';
 export class Bot {
     //TODO: do all the default values at one layer, not split like now
     //TODO: some method names could be better
+    //TODO: build something similar to getTemplates for wiki tables
     constructor (parameters) {
         setAttributes(this, parameters);
         logInit(this);
@@ -120,9 +121,9 @@ export class Bot {
      * 
      * @return TODO
      */
-    getTemplates (page, section) {
+    getTemplates (page, section, url) {
         //TODO
-        return this.dataActions.getTemplates(page, section);
+        return this.dataActions.getTemplates(page, section, url);
     }
 
     /**returns the sections of a page
