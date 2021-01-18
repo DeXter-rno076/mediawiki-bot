@@ -1,5 +1,6 @@
 import { _edit } from './edit.mjs';
 import { _move } from './move.mjs';
+import { _revert } from './revert.mjs';
 
 export class EditActions {
     constructor (url, dataActions) {
@@ -20,6 +21,10 @@ export class EditActions {
         checkSum(summary);
         return _move(from, to, summary, movetalk,
             movesubpages, noredirect, url, this);
+    }
+
+    revert (options, summary, user, url) {
+        return _revert(options, summary, user, url, this);
     }
 }
 

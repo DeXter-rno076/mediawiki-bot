@@ -35,6 +35,9 @@ export function get (url, qs) {
  * @param qs 
  */
 export function post (action, url, postBody, qs, taskId) {
+    if (action !== 'login' && action !== 'logout') {
+        qs.assert = 'bot';
+    }
     return new Promise ((resolve, reject) => {
         request.post({
             url: String(url),

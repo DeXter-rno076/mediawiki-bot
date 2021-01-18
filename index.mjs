@@ -5,9 +5,12 @@ import { reqInit, post } from './getpost.mjs';
 import { logInit, saveConsoleOutput } from './logapi.mjs';
 
 export class Bot {
+    //TODO: BIG TODO: check every single user input and/or parse it into the wanted data type
     //TODO: do all the default values at one layer, not split like now
     //TODO: some method names could be better
-    //TODO: build something similar to getTemplates for wiki tables
+    //TODO: rethink exception handling (maybe involving saveMsg())
+    //TODO: put summary params further behind
+    //ideas for more functions: build something similar to getTemplates for wiki tables
     constructor (parameters) {
         setAttributes(this, parameters);
         logInit(this);
@@ -27,11 +30,19 @@ export class Bot {
             password: this.password,
             logintoken: token,
             loginreturnurl: url,
+            //assert: 'bot',//login gets blocked if user does not have bot rights
             format: 'json'
         }
-        return post('login', this.url, params, '', this.taskId);
+        const loginResponse = JSON.parse(await post('login', this.url, params, {}, this.taskId));
+        if (loginResponse.clientlogin !== undefined && loginResponse.clientlogin.status !== 'PASS') {
+            throw 'error in logging in: login status is not "PASS"';
+        }
     }
 
+    /**
+     * used for logging out
+     * be cautios with this if you're not waiting for the server to handle your editing requests (the logout request could get handled before some edit requests which would lead to assertbotfailed errors)
+    */
     async logout () {
         let token;
         try {
@@ -51,12 +62,15 @@ export class Bot {
     //======================= editing stuff
 
     /**
-     * todo switch places of summary and options (summary will often be empty because of global summary)
      * @param title page title
      * @param text new page content
      * @param summary edit summary (default value is summary given to Bot constructor)
      * @param options other options for editing (optional) (if you're editing one section don't forget the section heading, otherwise it will be removed by the edit)
      * @param url url the edit request is sent to (default: url given to Bot constructor)
+     * 
+     * always have at least one bot action with waiting (i. e. using await or promise handling) between each edit call if you are editing without waiting (i. e. using edit without await or promise handling)
+     * 
+     * todo switch places of summary and options (summary will often be empty because of global summary)
      */
     edit (title, text, summary = '', options, url) {
         if (summary === '') {
@@ -65,8 +79,27 @@ export class Bot {
         return this.editActions.edit(title, text, summary, options, url);
     }
 
-    revert (TODO) {
-        this.editActions.revert(TODO);
+    /**
+     * @param {Object} options gives info about which edits to revert
+     * {
+     *      botTask: "^n/$n/n", which one of the previous bot task logged in botlogs/mainlog.json (^ starts counting from 0, $ starts counting from the last index of mainlog.json; thus: ^0 refers to the first bot task that didn't got removed from the logs, $0 refers to the last bot task THAT WON'T GET REMOVED (the logs are cleaned up at the beginning of the program execution => the newest bot task might get removed before the revert function gets called), just a number selects the bot task with the corresponding id that won't get removed)
+     * 
+     *      start and end must always be used together
+     *      start: "time", starting point (must be in ISO format) (if set to null or '' the user's first edit until end is selected)
+     *      end: "time", ending point (must be in ISO format) (if set to null or '' the user's edit at start until his/hers/its most recent one)
+     * 
+     *      summary: "sum", selects all edits with the given summary (with no other selection property set this will check every edit of the user)
+     *
+     *      GIDNMWH: "anything except of undefined" (short for "get it done no matter what happens") instead of reverting, the bot sets the pages to the version before the selected edit (avoids reverting getting blocked by more recent edits at a page but of course this might revert other edits that weren't selected)
+     * }
+     * all of these can be combined (however if botTask is set, start and end will be ignored)
+     * @param {String} summary summary of the reverts
+     * @param {String} user whose edits shall be reverted (default value: the bot's username)
+     * @param {String} url 
+     */
+    revert (options, summary = '', user = this.username, url = this.url) {
+        //in testing
+        return this.editActions.revert(options, summary, user, url);
     }
 
     /**
@@ -91,15 +124,15 @@ export class Bot {
      * @param {String} category name of the targeted category (the namespace prefix MUST be set, e. g. 'Category:Test')
      * TODO rename data param
      * @param {Array} data which types of data shall be included in the objects that are returned (default: ['title'], allowed element values: 'ids', 'title', 'sortkey', 'sortkeyprefix', 'type', 'timestamp', 'ns')
-     * @param {Integer, String} limit maximum number of returned pages per request (default: 'max' (equivalent to 500))
      * @param {Object} ns pages from which namespaces shall be included, object with the attribute includeonly (only the given namespaces) or excludeonly (all but the given namespaces) with an array containing the namespace names as value (default: {includeonly: ['Main']})
+     * @param {Integer, String} limit maximum number of returned pages per request (default: 'max' (equivalent to 500))
      * @param {String} url url the requests are sent to (default: url given to Bot constructor)
      * 
      * @return {Object} array of objects or strings that contain data about the targeted category members (objects if multiple types of data are wanted, strings if only one type)
      * if multiple types are selected the objects in the array have an attribute for every type
      * if the titles are given the toString methods of the objects return the title
      */
-    getCatMembers (category, data = ['title'], limit = 'max', ns = {includeonly: ['Main']}, url) {
+    getCatMembers (category, data = ['title'], ns = {includeonly: ['Main']}, limit = 'max', url) {
         return this.dataActions.getCatMembers(category, data, limit, ns, url);
     }
 
@@ -122,7 +155,6 @@ export class Bot {
      * @return TODO
      */
     getTemplates (page, section, url) {
-        //TODO
         return this.dataActions.getTemplates(page, section, url);
     }
 
@@ -195,15 +227,3 @@ function setAttributes (obj, parameters) {
     obj.dataActions = new DataActions(obj.url);
     obj.editActions = new EditActions(obj.url, obj.dataActions);
 }
-
-/* function setupLogDir (bot) {
-    try {
-        fs.accessSync('./botlogs');
-    } catch (error) {
-        //if botlogs dir doesn't exist, an error is thrown and the dir is set up
-        logInit();
-        //TODO give the existing txt files new names or put them in an archive directory or similar, otherwise they would get overwritten
-    }
-    newJob(bot);//creates new job and sets taskId for the logging stuff
-    bot.editActions.taskId = bot.taskId;
-} */
