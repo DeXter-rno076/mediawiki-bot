@@ -31,8 +31,8 @@ export class DataActions {
         return _getWikitext(page, section, url, this);
     }
 
-    getCatMembers (cat, data, limit, ns, url = this.url) {
-        return _getCatMembers(cat, data, limit, ns, url);
+    getCatMembers (cat, data, ns, limit, url = this.url) {
+        return _getCatMembers(cat, data, ns, limit, url);
     }
 
     getTemplates (page, section, url = this.url) {

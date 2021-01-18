@@ -28,7 +28,9 @@ export async function _edit (title, text, summary, options, url, callerObj) {
         await dataActions.setSectionIndex(params, options.section);
     }
 
-    return post('edit', url, params, '', callerObj.taskId);
+    //todo maybe retry this if a badtoken error occurs (this could be done for edit/move/revert in post function)
+    //or maybe something like function saveEdit() that retries it a couple of times if necessary but that is therefore slower for move/edit (for revert standard)
+    return post('edit', url, params, {}, callerObj.taskId);
 }
 
 function setParams (obj, token, title, text, summary, options) {
@@ -55,7 +57,14 @@ function setParams (obj, token, title, text, summary, options) {
         obj.nocreate = 'true';//default to prevent accidently creating pages
     }
 
-    obj.title = String(title);
+    if (title) {
+        obj.title = String(title);
+    } else if (options.pageId) {
+        obj.pageid = String(options.pageId);
+    } else {
+        throw 'either title or pageId must be given for editing';
+    }
+    
     obj.text = String(text);
     
     if (summary !== '') {

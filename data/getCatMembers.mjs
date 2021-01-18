@@ -19,7 +19,7 @@ const namespaces = {
     "Category talk": "15"
 };
 
-export async function _getCatMembers (cat, data, limit, ns, url) {
+export async function _getCatMembers (cat, data, ns, limit, url) {
     let nsStr = buildNamespaceStr(ns);
     let dataStr = buildDataStr(data);
     let pages = await addPages(cat, dataStr, limit, nsStr, url);
