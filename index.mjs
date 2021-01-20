@@ -1,15 +1,20 @@
 import fs from 'fs';
-import { EditActions } from './editing/EditActions.mjs';
-import { DataActions } from './data/DataActions.mjs';
-import { reqInit, post } from './getpost.mjs';
+import { reqInit, post, get } from './getpost.mjs';
 import { logInit, saveConsoleOutput } from './logapi.mjs';
+
+import { _getWikitext } from './data/getWikitext.mjs';
+import { _getSections } from './data/getSections.mjs';
+import { _getCatMembers } from './data/getCatMembers.mjs';
+import { _getTemplates } from './data/getTemplates.mjs';
+
+import { _edit } from './editing/edit.mjs';
+import { _move } from './editing/move.mjs';
+import { _revert } from './editing/revert.mjs';
 
 export class Bot {
     //TODO: BIG TODO: check every single user input and/or parse it into the wanted data type
-    //TODO: do all the default values at one layer, not split like now
     //TODO: some method names could be better
     //TODO: rethink exception handling (maybe involving saveMsg())
-    //TODO: put summary params further behind
     //ideas for more functions: build something similar to getTemplates for wiki tables
     constructor (parameters) {
         setAttributes(this, parameters);
@@ -17,13 +22,17 @@ export class Bot {
     }
 
     async login (url = this.url) {
+        if (typeof url !== 'string') {
+            throw 'error in login: url must be a string';
+        }
+
         let token;
         try {
-            token = await this.dataActions.getToken('login');
+            token = await this.getToken('login');
         } catch (error) {
             throw 'error in getting login token: ' + error;
         }
-        
+
         let params = {
             action: 'clientlogin',
             username: this.username,
@@ -46,7 +55,7 @@ export class Bot {
     async logout () {
         let token;
         try {
-            token = await this.dataActions.getToken();
+            token = await this.getToken();
         } catch (error) {
             throw 'error in getting csrf token for logout: ' + error;
         }
@@ -62,7 +71,7 @@ export class Bot {
     //======================= editing stuff
 
     /**
-     * @param title page title
+     * @param title page title (optional; you can set pageid in parameter options instead (use undefined as the value for this parameter in this case))
      * @param text new page content
      * @param summary edit summary (default value is summary given to Bot constructor)
      * @param options other options for editing (optional) (if you're editing one section don't forget the section heading, otherwise it will be removed by the edit)
@@ -72,11 +81,17 @@ export class Bot {
      * 
      * todo switch places of summary and options (summary will often be empty because of global summary)
      */
-    edit (title, text, summary = '', options, url) {
+    edit (title, text, options, summary = '', url = this.url) {
+        if (title !== undefined && typeof title !== 'string' && typeof title !== 'number') throw 'error in edit: title must be a string or a number';
+        if (typeof text !== 'string' && typeof text !== 'number') throw 'error in edit: text must be a string or a number';
+        if (options !== undefined && typeof options !== 'object') throw 'error in edit: options must be an object';
+        if (typeof summary !== 'string' && typeof summary !== 'number') throw 'error in edit: summary must be a string or a number';
+        if (typeof url !== 'string') throw 'error in edit: url must be a string';
+
         if (summary === '') {
             summary = this.summary;
         }
-        return this.editActions.edit(title, text, summary, options, url);
+        return _edit(title, text, summary, options, url, this, setSectionIndex);
     }
 
     /**
@@ -97,9 +112,13 @@ export class Bot {
      * @param {String} user whose edits shall be reverted (default value: the bot's username)
      * @param {String} url 
      */
-    revert (options, summary = '', user = this.username, url = this.url) {
-        //in testing
-        return this.editActions.revert(options, summary, user, url);
+    revert (options, user = this.username, summary = '', url = this.url) {
+        if (typeof options !== 'object') throw 'error in revert: options must be an object';
+        if (typeof user !== 'string' && typeof user !== 'number') throw 'error in revert: user must be a string or a number';
+        if (typeof summary !== 'string' && typeof summary !== 'number') throw 'error in revert: summary must be a string or a number';
+        if (typeof url !== 'string') throw 'error in revert: url must be string';
+
+        return _revert(options, summary, user, url, this);
     }
 
     /**
@@ -111,11 +130,19 @@ export class Bot {
      * @param noredirect whether a redirect from old name to new name shall be created (default: true)
      * @param url url the move request is sent to (default: url given to Bot constructor)
      */
-    move (from, to, summary = '', movetalk = 'true', movesubpages = 'true', noredirect = 'true', url) {
+    move (from, to, movetalk = 'true', movesubpages = 'true', noredirect = 'true', summary = '', url = this.url) {
+        if (typeof from !== 'string' && typeof from !== 'number') throw 'error in move: from must be a string or a number';
+        if (typeof to !== 'string' && typeof to !== 'number') throw 'error in move: to must be a string or a number';
+        if (typeof movetalk !== 'string' && typeof movetalk !== 'number') throw 'error in move: movetalk must be a string or a number';
+        if (typeof movesubpages !== 'string' && typeof movesubpages !== 'number') throw 'error in move: movesubpages must be a string or a number';
+        if (typeof noredirect !== 'string' && typeof noredirect !== 'number') throw 'error in move: noredirect must be a string or a number';
+        if (typeof summary !== 'string' && typeof summary !== 'number') throw 'error in move: summary must be a string or a number';
+        if (typeof url !== 'string') throw 'error in move: url must be a string';
+
         if (summary === '') {
             summary = this.summary;
         }
-        return this.editActions.move(from, to, summary, movetalk, movesubpages, noredirect, url);
+        return _move(from, to, summary, movetalk, movesubpages, noredirect, url, this);
     }
     
     //====================== data stuff
@@ -132,8 +159,14 @@ export class Bot {
      * if multiple types are selected the objects in the array have an attribute for every type
      * if the titles are given the toString methods of the objects return the title
      */
-    getCatMembers (category, data = ['title'], ns = {includeonly: ['Main']}, limit = 'max', url) {
-        return this.dataActions.getCatMembers(category, data, limit, ns, url);
+    getCatMembers (category, data = ['title'], ns = {includeonly: ['Main']}, limit = 'max', url = this.url) {
+        if (typeof category !== 'string') throw 'error in getCatMembers: category must be a string';
+        if (!Array.isArray(data)) throw 'error in getCatMembers: data must be an array';
+        if (typeof ns !== 'object') throw 'error in getCatMembers: ns must be an object';
+        if (typeof limit !== 'string' && typeof limit !== 'number') throw 'error in getCatMembers: limit must be a string or a number';
+        if (typeof url !== 'string') throw 'error in getCatMembers: url must be a string';
+
+        return _getCatMembers(category, data, ns, limit, url);
     }
 
     /**returns the sourcetext of a page
@@ -143,8 +176,12 @@ export class Bot {
      * 
      * @return page content as a string
      */
-    getWikitext (title, section, url) {
-        return this.dataActions.getWikitext(title, section, url);
+    getWikitext (title, section, url = this.url) {
+        if (typeof title !== 'string' && typeof title !== 'number') throw 'error in getWikitext: title must be a string or a number';
+        if (section !== undefined && typeof section !== 'string' && typeof section !== 'number') throw 'error in getWikitext: section must be a string or a number';
+        if (typeof url !== 'string') throw 'error in getWikitext: url must be a string';
+
+        return _getWikitext(title, section, url, this, setSectionIndex);
     }
 
     /**returns data about templates
@@ -154,8 +191,12 @@ export class Bot {
      * 
      * @return TODO
      */
-    getTemplates (page, section, url) {
-        return this.dataActions.getTemplates(page, section, url);
+    getTemplates (page, section, url = this.url) {
+        if (typeof page !== 'string' && typeof page !== 'number') throw 'error in getTemplates: page must be a string or a number';
+        if (section !== undefined && typeof section !== 'string' && typeof section !== 'number') throw 'error in getWikitext: section must be a string or a number';
+        if (typeof url !== 'string') throw 'error in getTemplates: url must be a string';
+
+        return _getTemplates(page, section, url, this.getWikitext);
     }
 
     /**returns the sections of a page
@@ -178,8 +219,11 @@ export class Bot {
      * that is the second section in the page and has level 2 (means "== section name ==")
      * todo explain the other parameters
      */
-    getSections (page, url) {
-        return this.dataActions.getSections(page, url);
+    getSections (page, url = this.url) {
+        if (typeof page !== 'string' && typeof page !== 'number') throw 'error in getSections: page must be a string or a number';
+        if (typeof url !== 'string') throw 'error in getSections: url must be a string';
+
+        return _getSections(page, url);
     }
 
     /**saves msg to the log file and writes msg on the console if doConsoleOutputs is set to true
@@ -187,10 +231,33 @@ export class Bot {
      * @param msg
      */
     saveMsg (msg) {
+        if (typeof msg !== 'string' && typeof msg !== 'number') throw 'error in saveMsg: msg must be a string or a number';
+
         if (this.doConsoleOutputs) {
             console.log(msg);
         }
         saveConsoleOutput(msg, this.taskId);
+    }
+
+    async getToken (type = 'csrf', url = this.url) {
+        if (typeof type !== 'string') throw 'error in getToken: type must be a string';
+        if (typeof url !== 'string') throw 'error in getToken: url must be a string';
+
+        let params = {
+            action: 'query',
+            meta: 'tokens',
+            type,
+            format: 'json'
+        };
+
+        try {
+            let body = await get(url, params);
+            let token = JSON.parse(body).query.tokens[type + 'token'];
+
+            return token;
+        } catch (error) {
+            throw error;
+        }
     }
 }
 
@@ -223,7 +290,27 @@ function setAttributes (obj, parameters) {
     } else {
         obj.doConsoleOutputs = true;
     }
+}
 
-    obj.dataActions = new DataActions(obj.url);
-    obj.editActions = new EditActions(obj.url, obj.dataActions);
+async function setSectionIndex (bot, obj, section) {
+    if (Number(section)) {
+        //section contains a number => is handled as a section index
+        obj.section = String(section);
+    } else {
+        //edit uses title, parse (e. g. getWikitext) uses page
+        let pageTitle = String(obj.page) || String(obj.title) || String(obj.pageid);
+        let pageSections = await bot.getSections(pageTitle);
+        let index = -1;
+        for (let element of pageSections) {
+            if (element.line === section) {
+                index = element.index;
+                break;
+            }
+        }
+        if (index === -1) {
+            throw 'error in getting wikitext of a section: section ' + section + ' does not exist in page ' + obj.page;
+        } else {
+            obj.section = String(index);
+        }
+    }
 }

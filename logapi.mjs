@@ -3,7 +3,7 @@ import fs from 'fs';
 const logDirPath = './botlogs';
 
 /*
-TODO somehow manage to make it possible to return into the last task if program execution addidently stopped
+TODO somehow manage to make it possible to return into the last task if program execution accidently stopped
 TODO when mainlog.json got removed give existing txt files new names or put them in an archive directory or similar, otherwise they would get overwritten
 */
 
@@ -17,7 +17,7 @@ export function logInit (bot) {
     cleanUpLogFiles();
 
     newJob(bot);//creates new job and sets taskId for the logging stuff
-    bot.editActions.taskId = bot.taskId;
+    bot.taskId = bot.taskId;
 }
 
 function setUpDirectoryStructure () {

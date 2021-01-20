@@ -1,24 +1,24 @@
 import { get } from '../getpost.mjs';
 
-export async function _getWikitext (page, section, url, dataActions) {
+export async function _getWikitext (page, section, url, bot, setSectionIndex) {
     let params = {};
     setParams(params, page);
 
     if (section !== undefined) {
-        await dataActions.setSectionIndex(params, section);
+        await setSectionIndex(bot, params, section);
     }
 
     let content;
     try {
         content = await get(url, params);
     } catch (error) {
-        throw 'TODO (do this text better): error in get request for getting the page content: ' + error;
+        throw 'error in getting the page content of '+ params.page +': ' + error;
     }
 
     try {
         return JSON.parse(content).parse.wikitext['*'];
     } catch (error) {
-        throw 'error in getting wikitext from server response, targeted wiki page probably doesn\'t extist';
+        throw 'error in parsing server response containing wikitext, targeted wiki page ' + params.page + ' probably doesn\'t extist';
     }
 }
 

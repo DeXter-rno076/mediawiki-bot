@@ -16,7 +16,7 @@ export function reqInit (input) {//todo not happy with this
 export function get (url, qs) {
     return new Promise ((resolve, reject) => {
         request.get({
-            url: String(url),
+            url,
             qs,
         }, (error, response, body) => {
             if (error) {
@@ -40,7 +40,7 @@ export function post (action, url, postBody, qs, taskId) {
     }
     return new Promise ((resolve, reject) => {
         request.post({
-            url: String(url),
+            url,
             qs,
             form: postBody
         }, (error, response, body) => {
