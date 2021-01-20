@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { get, post } from '../getpost.mjs';
 
-export async function _revert (options, summary, user, url, callerObj) {
+export async function _revert (options, summary, user, url, bot) {
     const editRevisions = await getRevisions(options, user, url);
 
     //console.log(editRevisions);
 
-    await doStuff(editRevisions, options, summary, url, callerObj);
+    await doStuff(editRevisions, options, summary, url, bot);
 
     return;
 }
@@ -106,12 +106,15 @@ async function getRevsRequest(options, url, cont) {
         prop: 'revisions',
         list: 'usercontribs',
         uclimit: '500',
-        ucuser: options.user,
+        ucuser: String(options.user),
         format: 'json'
     };
 
-    if (options.startingPoint) params.ucend = options.startingPoint;
-    if (options.endingPoint) params.ucstart = options.endingPoint;
+    let tstart = options.startingPoint;
+    let tend = options.endingPoint;
+    //the order of tstart and tend is correct (imo how mediawiki handles start and end is not intuitive)
+    if (tstart !== undefined && tstart !== null && tstart !== '') params.ucend = String(tstart);
+    if (tend !== undefined && tend !== null && tend !== '') params.ucstart = String(tend);
 
     if (cont !== undefined) params.uccontinue = cont.uccontinue;
 
@@ -134,11 +137,11 @@ function checkForSummary (summary, revisions) {
 
 //final functions that send the requests ====================================================================
 
-async function doStuff (revisions, options, summary, url, callerObj) {
+async function doStuff (revisions, options, summary, url, bot) {
     for (let revision of revisions) {
         let token;
         try {
-            token = await callerObj.dataActions.getToken();
+            token = await bot.getToken();
         } catch (error) {
             throw 'error in getting csrf token for reverting: ' + error;
         }
@@ -159,9 +162,9 @@ async function doStuff (revisions, options, summary, url, callerObj) {
         //todo if the edit fails retry it
         try {
             if (options.GIDNMWH) {
-                await rollbackExtreme(revision, params, postBody, url, callerObj);
+                await rollbackExtreme(revision, params, postBody, url, bot);
             } else {
-                await revertEdits(params, postBody, url, callerObj);
+                await revertEdits(params, postBody, url, bot);
             }
         } catch (error) {
             //todo 
@@ -170,11 +173,11 @@ async function doStuff (revisions, options, summary, url, callerObj) {
 }
 
 
-async function revertEdits (params, postBody, url, callerObj) {
-    return post('revert', url, postBody, params, callerObj.taskId);
+async function revertEdits (params, postBody, url, bot) {
+    return post('revert', url, postBody, params, bot.taskId);
 }
 
-async function rollbackExtreme (revision, params, postBody, url, callerObj) {
+async function rollbackExtreme (revision, params, postBody, url, bot) {
     const newestRevOnPage = await getNewestRevision(params.pageid, url);
     if (newestRevOnPage > params.undo) {
         params.undoafter = newestRevOnPage;
@@ -183,7 +186,7 @@ async function rollbackExtreme (revision, params, postBody, url, callerObj) {
         params.undo = revision.parentid;
     }
 
-    return post('almighty revert', url, postBody, params, callerObj.taskId);
+    return post('almighty revert', url, postBody, params, bot.taskId);
 }
 
 async function getNewestRevision (pageid, url) {

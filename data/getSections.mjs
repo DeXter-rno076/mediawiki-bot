@@ -4,15 +4,17 @@ export async function _getSections (page, url) {
     let params = {
         action: 'parse',
         prop: 'sections',
-        page,
         format: 'json'
     }
+
+    if (Number(page)) params.pageid = String(page);
+    else params.page = String(page);
 
     let sections;
     try {
         sections = await get(url, params);
     } catch (error) {
-        throw 'TODO (do this text better): error in get request for getting the page sections: ' + error;
+        throw 'error in getting the page sections: ' + error;
     }
 
     return JSON.parse(sections).parse.sections;

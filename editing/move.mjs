@@ -1,13 +1,9 @@
 import { post } from '../getpost.mjs';
 
-export async function _move (from, to, summary, movetalk, movesubpages, noredirect, url, callerObj) {
-    const dataActions = callerObj.dataActions;
-
-    checkMustHaveParams(from, to);
-
+export async function _move (from, to, summary, movetalk, movesubpages, noredirect, url, bot) {
     let token;
     try {
-        token = await dataActions.getToken();
+        token = await bot.getToken();
     } catch (error) {
         throw 'error in getting csrf token for moving: ' + error;
     }
@@ -15,7 +11,7 @@ export async function _move (from, to, summary, movetalk, movesubpages, noredire
     let params = {};
     setParams(params, arguments);
 
-    return post('move', url, {token}, params, callerObj.taskId);
+    return post('move', url, {token}, params, bot.taskId);
 }
 
 function setParams (obj, args) {
@@ -37,10 +33,4 @@ function setParams (obj, args) {
     }
 
     obj.format = 'json';
-}
-
-function checkMustHaveParams (from, to) {
-    if (from === undefined || from === '' || to === undefined || to === '') {
-        throw 'from and to parameters must be set for moving pages';
-    }
 }
