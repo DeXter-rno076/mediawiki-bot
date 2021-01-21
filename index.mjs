@@ -12,9 +12,9 @@ import { _move } from './editing/move.mjs';
 import { _revert } from './editing/revert.mjs';
 
 export class Bot {
-    //TODO: BIG TODO: check every single user input and/or parse it into the wanted data type
     //TODO: some method names could be better
     //TODO: rethink exception handling (maybe involving saveMsg())
+    //TODO: the retry stuff has to get tested
     //ideas for more functions: build something similar to getTemplates for wiki tables
     constructor (parameters) {
         setAttributes(this, parameters);
@@ -39,7 +39,6 @@ export class Bot {
             password: this.password,
             logintoken: token,
             loginreturnurl: url,
-            //assert: 'bot',//login gets blocked if user does not have bot rights
             format: 'json'
         }
         const loginResponse = JSON.parse(await post('login', this.url, params, {}, this.taskId));
@@ -78,8 +77,6 @@ export class Bot {
      * @param url url the edit request is sent to (default: url given to Bot constructor)
      * 
      * always have at least one bot action with waiting (i. e. using await or promise handling) between each edit call if you are editing without waiting (i. e. using edit without await or promise handling)
-     * 
-     * todo switch places of summary and options (summary will often be empty because of global summary)
      */
     edit (title, text, options, summary = '', url = this.url) {
         if (title !== undefined && typeof title !== 'string' && typeof title !== 'number') throw 'error in edit: title must be a string or a number';
@@ -189,7 +186,7 @@ export class Bot {
      * @param {String} page title of the targeted page
      * @param {String} section name of the targeted section (optional)
      * 
-     * @return TODO
+     * todo explain how the object structure is built up
      */
     getTemplates (page, section, url = this.url) {
         if (typeof page !== 'string' && typeof page !== 'number') throw 'error in getTemplates: page must be a string or a number';

@@ -11,7 +11,24 @@ export async function _move (from, to, summary, movetalk, movesubpages, noredire
     let params = {};
     setParams(params, arguments);
 
-    return post('move', url, {token}, params, bot.taskId);
+    let resBody = await post('move', url, {token}, params, bot.taskId);
+
+    let counter = 0;
+    while (resBody.error !== undefined && resBody.error.code === 'badtoken' && counter < 5) {
+        console.log('badtoken error occured in moving, trying again');
+
+        try {
+            token = await bot.getToken();
+        } catch (error) {
+            throw 'error in getting csrf token for moving: ' + error;
+        }
+
+        resBody = JSON.parse(await post('move', url, {token}, params, bot.taskId));
+
+        counter++;
+    }
+
+    return resBody;
 }
 
 function setParams (obj, args) {

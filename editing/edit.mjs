@@ -16,7 +16,24 @@ export async function _edit (title, text, summary, options, url, bot, setSection
 
     //todo maybe retry this if a badtoken error occurs (this could be done for edit/move/revert in post function)
     //or maybe something like function saveEdit() that retries it a couple of times if necessary but that is therefore slower for move/edit (for revert standard)
-    return post('edit', url, params, {}, bot.taskId);
+    let resBody = JSON.parse(await post('edit', url, params, {}, bot.taskId));
+
+    let counter = 0;
+    while (resBody.error !== undefined && resBody.error.code === 'badtoken' && counter < 5) {
+        console.log('badtoken error occured in editing, trying again');
+
+        try {
+            params.token = await bot.getToken();
+        } catch (error) {
+            throw 'error in getting csrf token for editing: ' + error;
+        }
+
+        resBody = JSON.parse(await post('edit', url, params, {}, bot.taskId));
+
+        counter++;
+    }
+
+    return resBody;
 }
 
 function setParams (obj, token, title, text, summary, options) {
