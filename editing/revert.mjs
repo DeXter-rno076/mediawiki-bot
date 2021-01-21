@@ -174,7 +174,24 @@ async function doStuff (revisions, options, summary, url, bot) {
 
 
 async function revertEdits (params, postBody, url, bot) {
-    return post('revert', url, postBody, params, bot.taskId);
+    let resBody = await post('revert', url, postBody, params, bot.taskId);
+
+    let counter = 0;
+    while (resBody.error !== undefined && resBody.error.code === 'badtoken' && counter < 5) {
+        console.log('badtoken error occured in reverting, trying again');
+
+        try {
+            postBody.token = await bot.getToken();
+        } catch (error) {
+            throw 'error in getting csrf token for reverting: ' + error;
+        }
+
+        resBody = JSON.pars(await post('revert', url, postBody, params, bot.taskId));
+
+        counter++;
+    }
+
+    return resBody;
 }
 
 async function rollbackExtreme (revision, params, postBody, url, bot) {
@@ -186,7 +203,24 @@ async function rollbackExtreme (revision, params, postBody, url, bot) {
         params.undo = revision.parentid;
     }
 
-    return post('almighty revert', url, postBody, params, bot.taskId);
+    let resBody = await post('almighty revert', url, postBody, params, bot.taskId);
+
+    let counter = 0;
+    while (resBody.error !== undefined && resBody.error.code === 'badtoken' && counter < 5) {
+        console.log('badtoken error occured in almighty reverting, trying again');
+
+        try {
+            postBody.token = await bot.getToken();
+        } catch (error) {
+            throw 'error in getting csrf token for almighty reverting: ' + error;
+        }
+
+        resBody = JSON.pars(await post('almighty revert', url, postBody, params, bot.taskId));
+
+        counter++;
+    }
+
+    return resBody;
 }
 
 async function getNewestRevision (pageid, url) {
