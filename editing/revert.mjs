@@ -159,7 +159,6 @@ async function doStuff (revisions, options, summary, url, bot) {
             token
         };
 
-        //todo if the edit fails retry it
         try {
             if (options.GIDNMWH) {
                 await rollbackExtreme(revision, params, postBody, url, bot);
@@ -167,7 +166,7 @@ async function doStuff (revisions, options, summary, url, bot) {
                 await revertEdits(params, postBody, url, bot);
             }
         } catch (error) {
-            //todo 
+            throw 'error in sending revert request: ' + error;
         }
     }
 }

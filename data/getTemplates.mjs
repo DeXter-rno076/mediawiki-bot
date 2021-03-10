@@ -1,6 +1,6 @@
-import { get } from '../getpost.mjs';
+import { post } from '../getpost.mjs';
 
-export async function _getTemplates (title, section, url, getWikitext) {
+export async function _getTemplates (title, section, url, getWikitext, taskId) {
     const articleText = await getWikitext(title, section, url);
 
     let params = {
@@ -13,7 +13,7 @@ export async function _getTemplates (title, section, url, getWikitext) {
 
     let reqBody;
     try {
-        reqBody = JSON.parse(await get(url, params));
+        reqBody = JSON.parse(await post('expandtemplates', url, params, {}, taskId));
     } catch (error) {
         throw 'error in getting xml parse tree: ' + error;
     }
@@ -25,7 +25,7 @@ export async function _getTemplates (title, section, url, getWikitext) {
 
 class TemplateObj {
     constructor(title, index) {
-        this.title = title;
+        this.title = title.trim();
         this.paramList = [];
 
         if (index !== undefined) {
@@ -101,8 +101,8 @@ function createTemplateStructure (objectTree) {
 
     for (let template of objectTree.content.tags) {
         if (template.title !== 'template') {
-            //TODO remove this after testing
-            console.warn('unwanted tag type in root tag array (only \'template\' allowed): ' + template.title);
+            //skip non templates
+            //console.warn('unwanted tag type in root tag array (only \'template\' allowed): ' + template.title);
             continue;
         }
         let templObj = parseTemplate(template);
@@ -133,15 +133,21 @@ function setParam (obj, paramCode) {
     const valueObj = paramCode.content.tags.find((item) => {
         return item.title === 'value';
     });
-    paramObj.text = valueObj.content.text;
 
-    for (let tag of valueObj.content.tags) {
-        if (tag.title !== 'template') {
-            //TODO remove this after testing
-            console.warn('unknown tag type in param value: ' + tag.title);
-            continue;
+    if (valueObj.content !== undefined) {
+        paramObj.text = valueObj.content.text;
+
+        for (let tag of valueObj.content.tags) {
+            if (tag.title !== 'template') {
+                //TODO remove this after testing
+                console.warn('unknown tag type in param value: ' + tag.title);
+                continue;
+            }
+            paramObj.addTempl(parseTemplate(tag));
         }
-        paramObj.addTempl(parseTemplate(tag));
+    } else {
+        //template parameters are sometimes set without a value
+        paramObj.text = '';
     }
 
     obj.addParam(paramObj.title, paramObj);
@@ -322,6 +328,7 @@ function replaceUnicodeAndHTMLEntities (rootObj) {
     //replacing unicode
     rootContent.text = rootContent.text.normalize();
     //replacinc common HTML entities
+    //TODO doesn't work properly
     rootContent.text = rootContent.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
     for (let tag in rootObj.content.tags) {
         replaceUnicodeAndHTMLEntities(tag);

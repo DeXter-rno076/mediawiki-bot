@@ -41,7 +41,7 @@ async function addPages (cat, dataStr, limit, nsStr, url) {
     do {
         const body = await getCatMembersPart(cat, dataStr, limit, nsStr, url, cont);
         pages = pages.concat(body.query.categorymembers);
-        cont = body.continue;
+        cont = body.continue !== undefined ? body.continue.cmcontinue : undefined;
     } while (cont !== undefined);
 
     return pages;
