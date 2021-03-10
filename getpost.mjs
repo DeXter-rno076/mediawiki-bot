@@ -35,7 +35,7 @@ export function get (url, qs) {
  * @param qs 
  */
 export function post (action, url, postBody, qs, taskId) {
-    if (action !== 'login' && action !== 'logout') {
+    if (action !== 'login' && action !== 'logout' && action !== 'expandtemplates') {
         qs.assert = 'bot';
     }
     return new Promise ((resolve, reject) => {
@@ -48,11 +48,11 @@ export function post (action, url, postBody, qs, taskId) {
                 reject(error);
             }
             const message = action + ': ' + body;
-            if (doConsoleOutputs && action !== 'getToken') {
+            if (doConsoleOutputs && action !== 'getToken' && action !== 'expandtemplates') {
                 console.log(message);
             }
 
-            saveConsoleOutput(message, taskId);
+            if (action !== 'expandtemplates') saveConsoleOutput(message, taskId);
 
             resolve(body);
         });

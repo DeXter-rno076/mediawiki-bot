@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { reqInit, post, get } from './getpost.mjs';
 import { logInit, saveConsoleOutput } from './logapi.mjs';
 
@@ -12,6 +11,7 @@ import { _move } from './editing/move.mjs';
 import { _revert } from './editing/revert.mjs';
 
 export class Bot {
+    //TODO: implement a test mode where the log stuff is ignored
     //TODO: some method names could be better
     //TODO: rethink exception handling (maybe involving saveMsg())
     //TODO: the retry stuff has to get tested
@@ -193,7 +193,7 @@ export class Bot {
         if (section !== undefined && typeof section !== 'string' && typeof section !== 'number') throw 'error in getWikitext: section must be a string or a number';
         if (typeof url !== 'string') throw 'error in getTemplates: url must be a string';
 
-        return _getTemplates(page, section, url, this.getWikitext);
+        return _getTemplates(page, section, url, this.getWikitext, this.taskId);
     }
 
     /**returns the sections of a page
