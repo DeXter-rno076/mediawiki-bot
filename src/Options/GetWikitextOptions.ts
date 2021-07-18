@@ -1,12 +1,11 @@
 import Options from './Options';
-import { pageIdentifier } from '../global-types';
 
 export default class GetWikitextOptions extends Options {
-	page: pageIdentifier;
+	page: string;
 	prop = 'wikitext';
 	section?: string | number;
 
-	constructor (page: pageIdentifier, section?: string | number) {
+	constructor (page: string, section?: string | number) {
 		super('parse', 'getWikitext');
 		this.page = page;
 		if (section !== undefined) {
