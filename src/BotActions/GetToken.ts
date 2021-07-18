@@ -12,7 +12,8 @@ export default class GetToken extends BotAction {
 
 	async exc (): Promise<BotActionReturn> {
 		const serverData = JSON.parse(await RequestHandler.get(this.opt));
-		const token = serverData.query.tokens.logintoken as string;
+		//last property can be logintoken and csrftoken depending on type
+		const token = serverData.query.tokens[this.opt.type + 'token'] as string;
 		const res = new BotActionReturn(undefined, token);
 		return res;
 	}
