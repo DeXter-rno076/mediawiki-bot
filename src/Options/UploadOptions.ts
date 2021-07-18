@@ -1,13 +1,15 @@
 import Options from "./Options";
 
 export default class UploadOptions extends Options {
-	uploadType: 'local' | 'url';
+	uploadType: 'local' | 'remote';
 	filename: string;
 	comment: string;
 	url?: string
 	ignorewarnings = false;
 
-	constructor (uploadType: 'local' | 'url', wantedName: string, comment: string) {
+	//todo a lot of stuff is missing for upload of local files
+
+	constructor (uploadType: 'local' | 'remote', wantedName: string, comment: string) {
 		super('upload', 'upload');
 		this.uploadType = uploadType;
 		this.filename = wantedName;
