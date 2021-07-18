@@ -1,3 +1,4 @@
+import Bot from './Bot';
 import * as fs from 'fs';
 import LogEntry from './LogEntry';
 
@@ -7,15 +8,13 @@ interface MainlogEntry {
 }
 
 export default class Logger {
-	//taskId gets definitely assigned but at least VS Codes doesnt realise it (to prevent error message => set default value, yeah feels very illegal)
-	taskId: number = -1;
 	readonly DIR_PATH = './logs';
-	logFileName = `${this.DIR_PATH}/${this.taskId}.txt`;
+	logFileName = `${this.DIR_PATH}/${Bot.taskId}.txt`;
 	mainlogFileName = `${this.DIR_PATH}/mainlog.json`;
 
 	constructor () {
 		this.initDirStructure();
-		if (this.taskId === -1) {
+		if (Bot.taskId === -1) {
 			console.error('something went wrong in Logger initialization. Task id still has starting value');
 		}
 	}
@@ -28,14 +27,14 @@ export default class Logger {
 				this.mainlogFileName, {encoding: 'utf8'}
 			)) as MainlogEntry[];
 			const lastTaskId = logData[logData.length - 1].id as number;
-			this.taskId = lastTaskId + 1;
+			Bot.taskId = lastTaskId + 1;
 
 			this.addNewMainLogEntry(logData);
 
 		} catch (e) {
 			fs.mkdirSync(this.DIR_PATH);
 			fs.writeFileSync(this.mainlogFileName, '[]');
-			this.taskId = 0;
+			Bot.taskId = 0;
 		} finally {
 			fs.writeFileSync(this.logFileName, '');
 		}
@@ -44,7 +43,7 @@ export default class Logger {
 	addNewMainLogEntry (logData: MainlogEntry[]) {
 		const time = new Date();
 		const taskLog: MainlogEntry = {
-			id: this.taskId,
+			id: Bot.taskId,
 			timestamp: time.toISOString()
 		}
 		logData.push(taskLog);

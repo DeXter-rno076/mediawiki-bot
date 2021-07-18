@@ -1,3 +1,4 @@
+import Bot from './Bot';
 import Options from './Options/Options';
 import * as req from 'request';
 import { mwActionType } from './global-types';
@@ -7,14 +8,11 @@ import GetToken from './BotActions/GetToken';
 const request = req.defaults({jar: true})
 
 export default class RequestHandler {
-	static url: string;
-	static taskId: number;
-
 	static get (opt: Options): Promise<string> {
 		RequestHandler.prepare(opt);
 		return new Promise((resolve, reject) => {
 			request.get({
-				url: RequestHandler.url,
+				url: Bot.url,
 				qs: opt
 			}, (error, response, body) => {
 				if (error) {
@@ -40,7 +38,7 @@ export default class RequestHandler {
 
 		return new Promise ((resolve, reject) => {
 			request.post({
-				url: RequestHandler.url,
+				url: Bot.url,
 				form: opt
 			}, (error, response, body) => {
 				if (error) {

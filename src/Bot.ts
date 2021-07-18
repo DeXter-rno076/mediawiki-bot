@@ -18,22 +18,23 @@ import GetTemplates from './BotActions/GetTemplates';
 import GetWikitextOptions from './Options/GetWikitextOptions';
 import GetWikitext from './BotActions/GetWikitext';
 
-export class Bot {
-	username: string;
-	password: string;
-	url: string;
-	logger: Logger;
+export default class Bot {
+	static username: string;
+	static password: string;
+	static url: string;
+	static logger: Logger;
+	static taskId = -1;
 
 	constructor (username: string, password: string, url: string) {
-		this.username = username;
-		this.password = password;
-		this.url = url;
+		Bot.username = username;
+		Bot.password = password;
+		Bot.url = url;
 		
-		this.logger = new Logger();
+		Bot.logger = new Logger();
 	}
 
 	login (): Promise<actionReturnType> {
-		const loginOpt = new LoginOptions(this.username, this.password);
+		const loginOpt = new LoginOptions(Bot.username, Bot.password);
 		const login = new Login(loginOpt);
 		return this.action(login);
 	}
@@ -75,13 +76,13 @@ export class Bot {
 
 	getLogger (): Logger {
 		//for logger.saveMsg(txt) that's supposed to be called by the user if wanted
-		return this.logger;
+		return Bot.logger;
 	}
 
 	private async action (task: BotAction): Promise<actionReturnType> {
 		const result = await task.exc();
 		if (result.status !== undefined) {
-			this.logger.save(result.status);
+			Bot.logger.save(result.status);
 		}
 		return result.data;
 	}
