@@ -17,7 +17,7 @@ export default class GetTemplatesOptions extends Options {
 	async setText () {
 		const gWOpt = new GetWikitextOptions(this.title, this.section);
 		const gw = new GetWikitext(gWOpt);
-		const res = gw.exc();
-		this.text = res.data;
+		const res = await gw.exc();
+		this.text = res.data as string;
 	}
 }
