@@ -6,6 +6,7 @@ export default abstract class Options {
 	logAction: logActionType;
 	format = 'json';
 	token?: string;
+	assert?: string;
 
 	constructor (action: mwActionType, logAction: logActionType) {
 		this.action = action;
@@ -15,5 +16,9 @@ export default abstract class Options {
 	//gets called from RequestHandler
 	setToken (token: string) {
 		this.token = token;
+	}
+
+	setAssert (assertType: string) {
+		this.assert = assertType;
 	}
 }
