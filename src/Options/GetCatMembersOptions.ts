@@ -27,7 +27,9 @@ export default class GetCatMembersOptions extends Options {
 	cmlimit: number | 'max' = 'max';
 	cmnamespace?: string;
 	cmtype?: catMemberType = 'page';
+	cmprop = 'title';
 	list = 'categorymembers';
+	cmcontinue: string = '';
 
 	constructor (category: string, ns?: namespace[]) {
 		super('query', 'getCatMembers');
@@ -46,5 +48,9 @@ export default class GetCatMembersOptions extends Options {
 
 	setType (type: catMemberType) {
 		this.cmtype = type;
+	}
+
+	setContinue (key: string) {
+		this.cmcontinue = key;
 	}
 }
