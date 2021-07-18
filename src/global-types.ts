@@ -1,5 +1,5 @@
 type editAction = 'edit' | 'move' | 'revert' | 'upload' | 'login';
-type dataAction = 'getCatMembers' | 'getTemplates' | 'getToken' | 'getWikitext' | 'getSections';
+type dataAction = 'getCatMembers' | 'getTemplates' | 'getToken' | 'getWikitext' | 'getSections' | 'getRevisions';
 type mwDataAction = 'parse' | 'query' | 'expandtemplates';
 
 export type mwActionType = editAction | mwDataAction;
