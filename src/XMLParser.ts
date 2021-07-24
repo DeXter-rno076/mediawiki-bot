@@ -6,6 +6,7 @@ interface TagContent {
 abstract class Tag {
 	title: string;
 	index: number;
+	singleTag: boolean = false;
 	attributes: Map<string, string> = new Map();
 
 	constructor (title: string, index: number) {
@@ -162,6 +163,18 @@ export class XMLParser {
 		}
 
 		const rootContent = root.content;
-		rootContent.text = rootContent.text.normalize();
+		const rootText = rootContent.text;
+
+		//replacing unicode
+		rootContent.text = rootText.normalize();
+		//replacing common HTML entities
+		rootContent.text = rootText.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+
+		for (let tag of root.content.tags) {
+			if (tag.singleTag) {
+				continue;
+			}
+			this.replaceUnicodeAndHTMLEntities(tag as NormalTag);
+		}
 	}
 }
