@@ -1,3 +1,5 @@
+import { Template } from './BotActions/GetTemplates';
+
 type editAction = 'edit' | 'move' | 'revert' | 'upload' | 'login';
 type dataAction = 'getCatMembers' | 'getTemplates' | 'getToken' | 'getWikitext' | 'getSections' | 'getRevisions';
 type mwDataAction = 'parse' | 'query' | 'expandtemplates';
@@ -7,7 +9,7 @@ export type mwActionType = editAction | mwDataAction;
 export type logActionType = editAction | dataAction;
 
 export type actionReturnType = string | string[] | undefined 
-	| Section | Section[] | CatMember | CatMember[];
+	| Section | Section[] | CatMember | CatMember[] | Template | Template[];
 
 //export type pageIdentifier = string | number;
 

@@ -1,9 +1,9 @@
-interface TagContent {
+export interface TagContent {
 	text: string;
 	tags: Tag[]
 }
 
-abstract class Tag {
+export abstract class Tag {
 	title: string;
 	index: number;
 	singleTag: boolean = false;
