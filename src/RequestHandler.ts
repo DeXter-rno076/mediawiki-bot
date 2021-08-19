@@ -25,14 +25,14 @@ export default class RequestHandler {
 
 	//todo split this up
 	static async post (opt: Options): Promise<string> {
-		if (opt.action !== 'login') {
+		if (opt.action !== 'clientlogin') {
 			opt.setAssert('bot');
 		}
 		RequestHandler.prepare(opt);
 
 		const token = await RequestHandler.getToken(opt.action);
 		opt.setToken(token);
-		if (opt.action !== 'login') {
+		if (opt.action !== 'clientlogin') {
 			opt.setAssert('bot');
 		}
 

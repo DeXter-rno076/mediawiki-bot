@@ -11,7 +11,7 @@ export default class GetTokenOptions extends Options {
 	}
 
 	static getTokenType (action: mwActionType): tokenType {
-		if (action === 'login') {
+		if (action === 'clientlogin') {
 			return 'login';
 		}
 		return 'csrf';

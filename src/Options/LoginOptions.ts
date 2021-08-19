@@ -1,18 +1,20 @@
+import Bot from "../Bot";
 import Options from "./Options";
 
 export default class LoginOptions extends Options {
-	lgname: string;
-	lgpassword: string;
-	lgtoken?: string;
+	username: string;
+	password: string;
+	logintoken?: string;
+	loginreturnurl = Bot.url;
 
 	constructor (name: string, password: string) {
-		super('login', 'login');
-		this.lgname = name;
-		this.lgpassword = password;
+		super('clientlogin', 'clientlogin');
+		this.username = name;
+		this.password = password;
 	}
 
 	//called by RequestHandler
 	setToken (token: string) {
-		this.lgtoken = token;
+		this.logintoken = token;
 	}
 }

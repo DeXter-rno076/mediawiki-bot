@@ -1,6 +1,6 @@
 import { Template } from './BotActions/GetTemplates';
 
-type editAction = 'edit' | 'move' | 'revert' | 'upload' | 'login';
+type editAction = 'edit' | 'move' | 'revert' | 'upload' | 'clientlogin';
 type dataAction = 'getCatMembers' | 'getTemplates' | 'getToken' | 'getWikitext' | 'getSections' | 'getRevisions';
 type mwDataAction = 'parse' | 'query' | 'expandtemplates';
 

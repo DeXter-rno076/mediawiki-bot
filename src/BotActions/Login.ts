@@ -14,7 +14,7 @@ export default class Login extends BotAction {
 
 	async exc (): Promise<BotActionReturn> {
 		const res = await RequestHandler.post(this.opt);
-		const logEntry = new LogEntry('login', res);
+		const logEntry = new LogEntry('clientlogin', res);
 		return new BotActionReturn(logEntry, '');
 	}
 }
