@@ -1,5 +1,5 @@
 import Logger from './Logger';
-import { actionReturnType } from './global-types';
+import { actionReturnType, CatMember } from './global-types';
 import BotAction from './BotActions/BotAction';
 import LoginOptions from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -14,7 +14,7 @@ import Upload from './BotActions/Upload';
 import GetCatMembersOptions from './Options/GetCatMembersOptions';
 import GetCatMembers from './BotActions/GetCatMembers';
 import GetTemplatesOptions from './Options/GetTemplatesOptions';
-import GetTemplates from './BotActions/GetTemplates';
+import GetTemplates, { Template } from './BotActions/GetTemplates';
 import GetWikitextOptions from './Options/GetWikitextOptions';
 import GetWikitext from './BotActions/GetWikitext';
 
@@ -38,47 +38,45 @@ export default class Bot {
 		}
 	}
 
-	//todo adjust return types like in getWikitext
-
-	login (): Promise<actionReturnType> {
+	login (): Promise<''> {
 		const loginOpt = new LoginOptions(Bot.username, Bot.password);
 		const login = new Login(loginOpt);
-		return this.action(login);
+		return this.action(login) as Promise<''>;
 	}
 
-	edit (opt: EditOptions): Promise<actionReturnType> {
+	edit (opt: EditOptions): Promise<''> {
 		const edit = new Edit(opt);
-		return this.action(edit);
+		return this.action(edit) as Promise<''>;
 	}
 
-	move (opt: MoveOptions): Promise<actionReturnType> {
+	move (opt: MoveOptions): Promise<''> {
 		const move = new Move(opt);
-		return this.action(move);
+		return this.action(move) as Promise<''>;
 	}
 
-	revert (opt: RevertOptions): Promise<actionReturnType> {
+	revert (opt: RevertOptions): Promise<''> {
 		const revert = new Revert(opt);
-		return this.action(revert);
+		return this.action(revert) as Promise<''>;
 	}
 
-	upload (opt: UploadOptions): Promise<actionReturnType> {
+	upload (opt: UploadOptions): Promise<''> {
 		const upload = new Upload(opt);
-		return this.action(upload);
+		return this.action(upload) as Promise<''>;
 	}
 
-	getCatMembers (opt: GetCatMembersOptions): Promise<actionReturnType> {
+	getCatMembers (opt: GetCatMembersOptions): Promise<CatMember[]> {
 		const getCatMembers = new GetCatMembers(opt);
-		return this.action(getCatMembers);
+		return this.action(getCatMembers) as Promise<CatMember[]>;
 	}
 
-	getTemplates (opt: GetTemplatesOptions): Promise<actionReturnType> {
+	getTemplates (opt: GetTemplatesOptions): Promise<Template[]> {
 		const getTemplates = new GetTemplates(opt);
-		return this.action(getTemplates);
+		return this.action(getTemplates) as Promise<Template[]>;
 	}
 
-	getWikitext (opt: GetWikitextOptions): Promise<actionReturnType> {
+	getWikitext (opt: GetWikitextOptions): Promise<string> {
 		const getWikitext = new GetWikitext(opt);
-		return this.action(getWikitext);
+		return this.action(getWikitext) as Promise<string>;
 	}
 
 	getLogger (): Logger | null {
