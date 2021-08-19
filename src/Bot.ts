@@ -24,14 +24,21 @@ export default class Bot {
 	static url: string;
 	static logger: Logger;
 	static taskId = -1;
+	static noLogs = false;
 
-	constructor (username: string, password: string, url: string) {
+	constructor (username: string, password: string, url: string, noLogs?: boolean) {
 		Bot.username = username;
 		Bot.password = password;
 		Bot.url = url;
-		
-		Bot.logger = new Logger();
+		if (noLogs !== undefined) {
+			Bot.noLogs = noLogs;
+		}
+		if (!Bot.noLogs) {
+			Bot.logger = new Logger();
+		}
 	}
+
+	//todo adjust return types like in getWikitext
 
 	login (): Promise<actionReturnType> {
 		const loginOpt = new LoginOptions(Bot.username, Bot.password);
@@ -74,14 +81,17 @@ export default class Bot {
 		return this.action(getWikitext);
 	}
 
-	getLogger (): Logger {
+	getLogger (): Logger | null {
 		//for logger.saveMsg(txt) that's supposed to be called by the user if wanted
+		if (Bot.noLogs) {
+			return null;
+		}
 		return Bot.logger;
 	}
 
 	private async action (task: BotAction): Promise<actionReturnType> {
 		const result = await task.exc();
-		if (result.status !== undefined) {
+		if (!Bot.noLogs && result.status !== undefined) {
 			Bot.logger.save(result.status);
 		}
 		return result.data;
