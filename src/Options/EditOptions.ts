@@ -1,5 +1,4 @@
 import Options from './Options';
-//todo section parameter
 
 export default class EditOptions extends Options {
 	title: string;
@@ -7,6 +6,7 @@ export default class EditOptions extends Options {
 	summary: string;
 	nocreate = true;
 	section?: string | number;
+	bot = true;
 
 	constructor (title: string, text: string, summary: string, section?: string | number) {
 		super('edit', 'edit');

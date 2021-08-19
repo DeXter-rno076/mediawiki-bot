@@ -68,6 +68,8 @@ export default class RequestHandler {
 		let k: keyof Options;
 		for (k in opt) {
 			if (typeof opt[k] === 'boolean') {
+				//@ts-ignore
+				//some subclasses of Options have boolean attributes
 				if (opt[k] === false) {
 					delete opt[k];
 				}

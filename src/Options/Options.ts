@@ -1,7 +1,6 @@
 import { logActionType, mwActionType } from '../global-types';
 
 export default abstract class Options {
-	bot = true;
 	action: mwActionType;
 	logAction: logActionType;
 	format = 'json';
