@@ -32,7 +32,7 @@ export default class GetCatMembersOptions extends Options {
 	cmcontinue: string = '';
 
 	constructor (category: string, ns?: namespace[]) {
-		super('query', 'getCatMembers');
+		super('query');
 		this.cmtitle = category;
 		if (ns !== undefined) {
 			this.cmnamespace = '';

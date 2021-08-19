@@ -5,7 +5,7 @@ export default class GetSectionsOptions extends Options {
 	page: string;
 	
 	constructor (page: string) {
-		super('parse', 'getSections');
+		super('parse');
 		this.page = page;
 	}
 }

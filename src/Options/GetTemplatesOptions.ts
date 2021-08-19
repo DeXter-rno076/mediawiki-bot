@@ -9,7 +9,7 @@ export default class GetTemplatesOptions extends Options {
 	section?: string | number;
 
 	constructor (title: string, section?: string | number) {
-		super('expandtemplates', 'getTemplates');
+		super('expandtemplates');
 		this.title = title;
 		this.section = section;
 	}

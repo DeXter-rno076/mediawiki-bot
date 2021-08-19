@@ -8,7 +8,7 @@ export default class LoginOptions extends Options {
 	loginreturnurl = Bot.url;
 
 	constructor (name: string, password: string) {
-		super('clientlogin', 'clientlogin');
+		super('clientlogin');
 		this.username = name;
 		this.password = password;
 	}

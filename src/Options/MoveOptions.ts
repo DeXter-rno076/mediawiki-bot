@@ -9,7 +9,7 @@ export default class MoveOptions extends Options {
 	noredirect = true;
 	
 	constructor (from: string, to: string, summary: string) {
-		super('move', 'move');
+		super('move');
 		this.from = from;
 		this.to = to;
 		this.reason = summary;

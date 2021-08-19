@@ -6,7 +6,7 @@ export default class GetTokenOptions extends Options {
 	type: tokenType;
 
 	constructor (type: tokenType) {
-		super('query', 'getToken');
+		super('query');
 		this.type = type;
 	}
 

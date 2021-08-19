@@ -10,7 +10,7 @@ export default class UploadOptions extends Options {
 	//todo a lot of stuff is missing for upload of local files
 
 	constructor (uploadType: 'local' | 'remote', wantedName: string, comment: string) {
-		super('upload', 'upload');
+		super('upload');
 		this.uploadType = uploadType;
 		this.filename = wantedName;
 		this.comment = comment;

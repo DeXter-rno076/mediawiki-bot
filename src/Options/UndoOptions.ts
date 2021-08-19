@@ -6,7 +6,7 @@ export default class UndoOptions extends Options {
 	bot = true;
 
 	constructor (title: string, revid: number) {
-		super('edit', 'revert');
+		super('edit');
 		this.title = title;
 		this.undo = revid;
 	}

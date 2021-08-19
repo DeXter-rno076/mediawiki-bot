@@ -9,7 +9,7 @@ export default class GetRevisionsOptions extends Options {
 	uccontinue?: string;
 
 	constructor (user: string, start?: Date) {
-		super('query', 'getRevisions');
+		super('query');
 		this.ucuser = user;
 		if (start !== undefined) {
 			this.ucend = start.toISOString();

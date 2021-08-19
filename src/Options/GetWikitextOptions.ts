@@ -6,7 +6,7 @@ export default class GetWikitextOptions extends Options {
 	section?: string | number;
 
 	constructor (page: string, section?: string | number) {
-		super('parse', 'getWikitext');
+		super('parse');
 		this.page = page;
 		if (section !== undefined) {
 			this.section = section;

@@ -9,7 +9,7 @@ export default class EditOptions extends Options {
 	bot = true;
 
 	constructor (title: string, text: string, summary: string, section?: string | number) {
-		super('edit', 'edit');
+		super('edit');
 		
 		this.title = title;
 		this.text = text;
