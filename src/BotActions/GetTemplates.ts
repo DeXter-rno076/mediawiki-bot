@@ -32,16 +32,23 @@ export class Template {
 
 	toWikitext (removeWhitespace: boolean) {
         let templateCode = '{{' + this.title;
+		if (removeWhitespace) {
+			templateCode = templateCode.trim();
+		}
 
         for (let param of this.params) {
             templateCode += '|';
             if (param.indexed) {
-                templateCode += param;
+				if (removeWhitespace) {
+					templateCode += String(param).trim();
+				} else {
+					templateCode += String(param);
+				}
             } else {
                 if (removeWhitespace) {
                     templateCode += param.title.trim() + '=' + param.toWikitext(true).trim();
                 } else {
-                    templateCode += param.title + '=' + param;
+                    templateCode += param.title + '=' + String(param);
                 }
             }
         }
@@ -76,6 +83,9 @@ class Parameter {
 
 	toWikitext (removeWhitespace: boolean): string {
 		let wikitext = this.text;
+		if (removeWhitespace) {
+			wikitext = wikitext.trim();
+		}
 
         for (let template of this.templates) {
             let templateCode = template.toWikitext(removeWhitespace);
