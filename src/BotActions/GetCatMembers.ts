@@ -26,8 +26,11 @@ export default class GetCatMembers extends BotAction {
 		this.opt.setContinue(continueKey);
 
 		const res = JSON.parse(await RequestHandler.get(this.opt));
+		if (res.error !== undefined && res.error.code === 'invalidcategory') {
+			throw `invalid category name given: ${this.opt.cmtitle}. Maybe you forgot the namespace prefix?`
+		}
 
-		this.catMembers.concat(res.query.categorymembers);
+		this.catMembers = this.catMembers.concat(res.query.categorymembers);
 
 		if (res.continue !== undefined) {
 			return res.continue.cmcontinue;
