@@ -5,13 +5,17 @@ import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
 
 export class Template {
-	title: string;
+	_title: string;
 	index: number;
 	params: Parameter[] = [];
 
 	constructor (title: string, index: number) {
-		this.title = title;
+		this._title = title;
 		this.index = index;
+	}
+
+	get title (): string {
+		return this._title.trim();
 	}
 
 	//supposed to be called by the user
@@ -31,7 +35,7 @@ export class Template {
 	}
 
 	toWikitext (removeWhitespace: boolean) {
-        let templateCode = '{{' + this.title;
+        let templateCode = '{{' + this._title;
 		if (removeWhitespace) {
 			templateCode = templateCode.trim();
 		}
