@@ -1,4 +1,3 @@
-//if (user === 'self') revert last task
 import Bot from '../Bot';
 import RevertOptions from "../Options/RevertOptions";
 import BotAction from "./BotAction";
@@ -32,12 +31,13 @@ export default class Revert extends BotAction {
 		if (this.opt.user === 'self') {
 			const botTasks = JSON.parse(fs.readFileSync('./logs/mainlog.json', {encoding: 'utf8'}));
 			const lastBotTask = botTasks[botTasks.length - 2];
-			const timestamp = lastBotTask.timestamp;
-			const revOpts = new GetRevisionsOptions(Bot.username, timestamp);
-			this.getRevisions(revOpts);
+			const timestamp = lastBotTask.timestamp as string;
+			const timestampDate = new Date(timestamp);
+			const revOpts = new GetRevisionsOptions(Bot.username, timestampDate);
+			await this.getRevisions(revOpts);
 		} else {
 			const revOpts = new GetRevisionsOptions(this.opt.user, this.opt.start);
-			this.getRevisions(revOpts);
+			await this.getRevisions(revOpts);
 		}
 		await this.revert();
 
@@ -54,7 +54,7 @@ export default class Revert extends BotAction {
 
 	async getRevisionsPart (revOpts: GetRevisionsOptions): Promise<string> {
 		const res = JSON.parse(await RequestHandler.get(revOpts));
-		this.revisions.concat(res.query.usercontribs);
+		this.revisions = this.revisions.concat(res.query.usercontribs);
 		if (res.continue !== undefined) {
 			return res.continue.uccontinue as string;
 		}
