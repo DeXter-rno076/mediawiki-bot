@@ -35,9 +35,9 @@ export default class GetCatMembersOptions extends Options {
 		super('query');
 		this.cmtitle = category;
 		if (ns !== undefined) {
-			this.cmnamespace = '';
-			for (let item of ns) {
-				this.cmnamespace += ',' + namespaces[item];
+			this.cmnamespace = String(namespaces[ns[0]]);
+			for (let i = 1; i < ns.length; i++) {
+				this.cmnamespace += ',' + namespaces[ns[i]];
 			}
 		}
 	}
