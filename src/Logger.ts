@@ -9,13 +9,14 @@ interface MainlogEntry {
 
 export default class Logger {
 	readonly DIR_PATH = './logs';
-	logFileName = '';
 	readonly mainlogFileName = `${this.DIR_PATH}/mainlog.json`;
+	//depends on Bot.taskId => cant be readonly
+	logFileName = '';
 
 	constructor () {
 		this.initDirStructure();
 		if (Bot.taskId === -1) {
-			throw 'something went wrong in Logger initialization. Task id still has starting value';
+			throw 'something went wrong in logger initialization. Task id still has starting value';
 		}
 	}
 
@@ -54,9 +55,9 @@ export default class Logger {
 
 	//is called from one central place in class Bot
 	save (msg: LogEntry) {
-		const txt = msg.print() + '\n';
+		const txt = msg.print();
 		console.log(txt);
-		fs.appendFileSync(this.logFileName, txt);
+		fs.appendFileSync(this.logFileName, txt + '\n');
 	}
 
 	//supposed to be called by the user
