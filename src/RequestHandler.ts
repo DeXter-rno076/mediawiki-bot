@@ -7,6 +7,8 @@ import GetToken from './BotActions/GetToken';
 //todo feels unclean
 const request = req.defaults({jar: true})
 
+//todo handle errors centrally right here (Edit and GetCatMembers do it temporarily on their own)
+
 export default class RequestHandler {
 	static get (opt: Options): Promise<string> {
 		RequestHandler.prepare(opt);
@@ -65,8 +67,18 @@ export default class RequestHandler {
 	}
 
 	static prepare (opt: Options) {
+		//list of attributes that arent meant for the wiki server
+		const attributeBlacklist = [
+			'uploadType'
+		];
+
 		let k: keyof Options;
 		for (k in opt) {
+			if (attributeBlacklist.includes(k)) {
+				delete opt[k];
+				continue;
+			}
+
 			if (typeof opt[k] === 'boolean') {
 				//@ts-ignore
 				//some subclasses of Options have boolean attributes
