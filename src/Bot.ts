@@ -1,5 +1,5 @@
 import Logger from './Logger';
-import { actionReturnType, CatMember } from './global-types';
+import { actionReturnType, CatMember, Section } from './global-types';
 import BotAction from './BotActions/BotAction';
 import LoginOptions from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -17,6 +17,8 @@ import GetTemplatesOptions from './Options/GetTemplatesOptions';
 import GetTemplates, { Template } from './BotActions/GetTemplates';
 import GetWikitextOptions from './Options/GetWikitextOptions';
 import GetWikitext from './BotActions/GetWikitext';
+import GetSectionsOptions from './Options/GetSectionsOptions';
+import GetSections from './BotActions/GetSections';
 
 export default class Bot {
 	static username: string;
@@ -77,6 +79,11 @@ export default class Bot {
 	getWikitext (opt: GetWikitextOptions): Promise<string> {
 		const getWikitext = new GetWikitext(opt);
 		return this.action(getWikitext) as Promise<string>;
+	}
+
+	getSections (opt: GetSectionsOptions): Promise<Section[]> {
+		const getSections = new GetSections(opt);
+		return this.action(getSections) as Promise<Section[]>;
 	}
 
 	getLogger (): Logger | null {
