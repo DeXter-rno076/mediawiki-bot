@@ -191,13 +191,13 @@ export default class GetTemplates extends BotAction {
 	}
 
 	addParamContentTemplates (param: Parameter, value: TagContent) {
-		const text = value.text;
+		let text = value.text;
 		const tags = value.tags;
 
 		for (let tag of tags) {
 			const index = tag.index;
 			if (tag.title === 'template') {
-				text.replace(`##TAG:${index}##`, `##TEMPLATE:${index}##`);
+				text = text.replace(`##TAG:${index}##`, `##TEMPLATE:${index}##`);
 				const template = this.parseTemplate(tag as NormalTag);
 				if (template !== undefined) {
 					param.addTemplate(template);
