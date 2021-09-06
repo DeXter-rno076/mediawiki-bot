@@ -1,0 +1,18 @@
+TESTING
+	RequestHandler
+	Logger			v
+
+	GetWikitext		v
+		section 	v
+	Edit			v
+		section		v
+	GetCatMembers	v
+	GetSections		v
+!	GetTemplates	v
+		section		v
+	Move			v
+	Upload			v
+!	Revert			v
+
+handle export stuff more handy
+mark every method that is meant for the user
