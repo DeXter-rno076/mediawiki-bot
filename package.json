@@ -1,12 +1,18 @@
 {
   "name": "mwbot",
   "version": "1.0.0",
-  "description": "v3 of MediaWiki bot",
-  "main": "built/src/index.ts",
+  "description": "Bot for automated requests to wikis using the MediaWiki API",
+  "main": "src/index.ts",
+  "bin": "built/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "exc": "node built/src/index.js"
   },
+  "keywords": [
+    "MediaWiki",
+    "bot",
+    "wiki"
+  ],
   "author": "DeXter",
   "license": "MIT",
   "dependencies": {
