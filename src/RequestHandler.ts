@@ -7,8 +7,6 @@ import GetToken from './BotActions/GetToken';
 //todo feels unclean
 const request = req.defaults({jar: true})
 
-//todo handle errors centrally right here (Edit and GetCatMembers do it temporarily on their own)
-
 export default class RequestHandler {
 	static get (opt: Options): Promise<string> {
 		RequestHandler.prepare(opt);
@@ -52,10 +50,6 @@ export default class RequestHandler {
 				resolve(body);
 			});
 		});
-	}
-
-	private static retry () {
-		//todo
 	}
 
 	static async getToken (action: mwActionType): Promise<string> {
