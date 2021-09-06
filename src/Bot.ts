@@ -1,3 +1,4 @@
+import fs from 'fs';
 import Logger from './Logger';
 import { actionReturnType, CatMember, Section } from './global-types';
 import BotAction from './BotActions/BotAction';
@@ -92,6 +93,29 @@ export default class Bot {
 			return null;
 		}
 		return Bot.logger;
+	}
+
+	//removes log files that only have the login logged
+	cleanUpLogfiles () {
+		const mainlogFile = Bot.logger.mainlogFileName;
+		const mainlog = JSON.parse(fs.readFileSync(mainlogFile, {encoding: 'utf8'}));
+		if (mainlog.length === 0) {
+			return;
+		}
+
+		for (let i = 0; i < mainlog.length; i++) {
+			const taskId = mainlog[i].id;
+			const taskFilePath = Bot.logger.DIR_PATH + '/' + taskId + '.txt';
+			const logFile = fs.readFileSync(taskFilePath, {encoding: 'utf8'});
+
+			if (logFile.split('\n').length <= 2) {
+				//if only one or none lines were written to the log file it gets deleted
+				fs.unlinkSync(taskFilePath);
+				mainlog.splice(i, 1);
+				i--;
+			}
+		}
+		fs.writeFileSync(Bot.logger.DIR_PATH + '/mainlog.json', JSON.stringify(mainlog));
 	}
 
 	private async action (task: BotAction): Promise<actionReturnType> {
