@@ -4,6 +4,8 @@ import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
 import GetSections from "./GetSections";
 import GetSectionsOptions from "../Options/GetSectionsOptions";
+import { ErrorResponse } from "../global-types";
+import { PageDoesNotExistError, UnsolvableErrorError } from "../errors";
 
 export default class GetWikitext extends BotAction {
 	opt: GetWikitextOptions;
@@ -18,7 +20,18 @@ export default class GetWikitext extends BotAction {
 			await this.setSectionIndex();
 		}
 
-		const res = JSON.parse(await RequestHandler.get(this.opt));
+		let response = await RequestHandler.get(this.opt);
+		let res;
+		try {
+			res = JSON.parse(response);
+		} catch (e) {
+			console.log(response);
+		}
+		
+		if (res.error !== undefined) {
+			res = await this.handleError(res as ErrorResponse);
+		}
+
 		const wikitext = res.parse.wikitext['*'] as string;
 		return new BotActionReturn(undefined, wikitext);
 	}
@@ -28,5 +41,13 @@ export default class GetWikitext extends BotAction {
 		const gSections = new GetSections(gSectionsOpts);
 		const index = await gSections.getIndex(this.opt.section as string) as number;
 		this.opt.section = index;
+	}
+
+	async handleError (res: ErrorResponse): Promise<string> {
+		const eCode = res.error.code;
+		if (eCode === 'missingtitle') {
+			throw new PageDoesNotExistError(this.opt.page, 'getWikitext');
+		}
+		throw new UnsolvableErrorError(eCode);
 	}
 }

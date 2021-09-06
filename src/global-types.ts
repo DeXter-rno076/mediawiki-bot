@@ -34,3 +34,9 @@ export interface CatMember {
 	ns: number;
 	title: string;
 }
+
+export interface ErrorResponse {
+	error: {
+		code: string
+	}
+}

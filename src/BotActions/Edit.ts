@@ -5,6 +5,8 @@ import LogEntry from '../LogEntry';
 import EditOptions from '../Options/EditOptions';
 import GetSectionsOptions from '../Options/GetSectionsOptions';
 import GetSections from '../BotActions/GetSections';
+import { ErrorResponse } from '../global-types';
+import { BadTokenError, PageDoesNotExistError, UnsolvableErrorError } from '../errors';
 
 export default class Edit extends BotAction {
 	opt: EditOptions;
@@ -24,7 +26,7 @@ export default class Edit extends BotAction {
 
 		const parsedResult = JSON.parse(res);
 		if (parsedResult.error !== undefined) {
-			res = await this.handleError(parsedRes);
+			res = await this.handleError(parsedResult as ErrorResponse);
 		}
 
 		const logEntry = new LogEntry('edit', res);
@@ -38,7 +40,7 @@ export default class Edit extends BotAction {
 		this.opt.section = sectionIndex;
 	}
 
-	async handleError (parsedRes: Object): Promise<string> {
+	async handleError (parsedRes: ErrorResponse): Promise<string> {
 		const eCode = parsedRes.error.code;
 		if (eCode === 'badtoken') {
 			for (let i = 0; i < this.MAX_RETRYS; i++) {
@@ -48,8 +50,10 @@ export default class Edit extends BotAction {
 					return res;
 				}
 			}
-			return 'ERROR';
+			throw new BadTokenError();
+		} else if (eCode === 'missingtitle') {
+			throw new PageDoesNotExistError(this.opt.title, 'edit');
 		}
-		throw 'uncommon problem or a problem I cant solve occured: ' + eCode;
+		throw new UnsolvableErrorError(eCode);
 	}
 }
