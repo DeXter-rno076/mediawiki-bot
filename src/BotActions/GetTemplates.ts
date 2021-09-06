@@ -20,6 +20,7 @@ export class Template {
 
 	//supposed to be called by the user
 	//every parameter name should be unique (no need to optionally return arrays)
+	//for indexed params just use their number (keep in mind: PARAM INDICES START AT 1)
 	getParam (name: string): Parameter | null {
 		const param = this.params.find((item) => {
 			return item.title === name;
