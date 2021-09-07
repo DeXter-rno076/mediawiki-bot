@@ -25,7 +25,7 @@ type catMemberType = 'file' | 'page' | 'subcat';
 export default class GetCatMembersOptions extends Options {
 	cmtitle: string;
 	cmlimit: number | 'max' = 'max';
-	cmnamespace?: string;
+	cmnamespace = '0';
 	cmtype?: catMemberType = 'page';
 	cmprop = 'title';
 	list = 'categorymembers';
