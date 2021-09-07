@@ -1,20 +1,23 @@
 {
-  "name": "mwbot",
+  "name": "mediawiki-bot",
   "version": "1.0.0",
-  "description": "Bot for automated requests to wikis using the MediaWiki API",
-  "main": "src/index.ts",
-  "bin": "built/src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "exc": "node built/src/index.js"
-  },
+  "description": "Bot for automated requests to wikis using the MediaWiki API.",
   "keywords": [
     "MediaWiki",
     "bot",
     "wiki"
   ],
-  "author": "DeXter",
+  "homepage": "https://github.com/DeXter-rno076/mediawiki-bot#readme",
   "license": "MIT",
+  "author": "DeXter",
+  "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DeXter-rno076/mediawiki-bot"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "@types/node": "^16.3.1",
     "@types/request": "^2.48.6",
