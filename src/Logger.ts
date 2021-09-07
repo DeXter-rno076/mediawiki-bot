@@ -7,7 +7,7 @@ interface MainlogEntry {
 	timestamp: string;
 }
 
-export default class Logger {
+export class Logger {
 	readonly DIR_PATH = './logs';
 	readonly mainlogFileName = `${this.DIR_PATH}/mainlog.json`;
 	//depends on Bot.taskId => cant be readonly
