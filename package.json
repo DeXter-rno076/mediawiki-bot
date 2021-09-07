@@ -10,7 +10,8 @@
   "homepage": "https://github.com/DeXter-rno076/mediawiki-bot#readme",
   "license": "MIT",
   "author": "DeXter",
-  "main": "src/index.ts",
+  "main": "built/src/index.js",
+  "types": "built/src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/DeXter-rno076/mediawiki-bot"
