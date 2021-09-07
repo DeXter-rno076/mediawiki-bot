@@ -40,3 +40,5 @@ export interface ErrorResponse {
 		code: string
 	}
 }
+
+export type catMemberType = 'file' | 'page' | 'subcat';

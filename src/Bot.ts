@@ -1,6 +1,6 @@
 import fs from 'fs';
-import Logger from './Logger';
-import { actionReturnType, CatMember, Section } from './global-types';
+import { Logger } from './Logger';
+import { actionReturnType, CatMember, namespace, Section, catMemberType } from './global-types';
 import BotAction from './BotActions/BotAction';
 import { LoginOptions } from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -47,43 +47,82 @@ export class Bot {
 		return this.action(login) as Promise<''>;
 	}
 
-	edit (opt: EditOptions): Promise<''> {
-		const edit = new Edit(opt);
+	edit (title: string, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<''> {
+		const eOpts = new EditOptions(title, text, summary, section);
+		if (nocreate !== undefined) {
+			eOpts.setNoCreate(nocreate);
+		}
+		const edit = new Edit(eOpts);
 		return this.action(edit) as Promise<''>;
 	}
 
-	move (opt: MoveOptions): Promise<''> {
-		const move = new Move(opt);
+	move (
+		from: string,
+		to: string,
+		summary: string,
+		moveTalk = true,
+		moveSubpgabes = true,
+		noredirect = true
+	): Promise<''> {
+		const moveOpts = new MoveOptions(from, to, summary);
+		if (!moveTalk || !moveSubpgabes || !noredirect) {
+			moveOpts.setAdvancedSettings(moveTalk, moveSubpgabes, noredirect);
+		}
+		const move = new Move(moveOpts);
 		return this.action(move) as Promise<''>;
 	}
 
-	revert (opt: RevertOptions): Promise<''> {
-		const revert = new Revert(opt);
+	revert (user: string, start?: Date): Promise<''> {
+		const revOpts = new RevertOptions(user, start);
+		const revert = new Revert(revOpts);
 		return this.action(revert) as Promise<''>;
 	}
 
-	upload (opt: UploadOptions): Promise<''> {
-		const upload = new Upload(opt);
+	upload (
+		uploadType: 'local' | 'remote',
+		wantedName: string,
+		comment: string,
+		url: string,
+		ignoreWarnings?: boolean
+	): Promise<''> {
+		const uploadOpts = new UploadOptions(uploadType, wantedName, comment);
+		uploadOpts.setFileUrl(url);
+		if (ignoreWarnings !== undefined) {
+			uploadOpts.setIgnoreWarnings(ignoreWarnings);
+		}
+		const upload = new Upload(uploadOpts);
 		return this.action(upload) as Promise<''>;
 	}
 
-	getCatMembers (opt: GetCatMembersOptions): Promise<CatMember[]> {
-		const getCatMembers = new GetCatMembers(opt);
+	
+	getCatMembers (
+		category: string,
+		ns?: namespace[],
+		type?: catMemberType
+	): Promise<CatMember[]> {
+		const getCatMembersOpts = new GetCatMembersOptions(category, ns);
+		if (type !== undefined)  {
+			getCatMembersOpts.setType(type);
+		}
+		const getCatMembers = new GetCatMembers(getCatMembersOpts);
 		return this.action(getCatMembers) as Promise<CatMember[]>;
 	}
 
-	getTemplates (opt: GetTemplatesOptions): Promise<Template[]> {
-		const getTemplates = new GetTemplates(opt);
+	getTemplates (title: string, section?: string | number): Promise<Template[]> {
+		const getTemplatesOpts = new GetTemplatesOptions(title, section);
+		const getTemplates = new GetTemplates(getTemplatesOpts);
 		return this.action(getTemplates) as Promise<Template[]>;
 	}
 
-	getWikitext (opt: GetWikitextOptions): Promise<string> {
-		const getWikitext = new GetWikitext(opt);
+	getWikitext (page: string, section?: string | number): Promise<string> {
+		const getWikitextOpts = new GetWikitextOptions(page, section);
+		const getWikitext = new GetWikitext(getWikitextOpts);
 		return this.action(getWikitext) as Promise<string>;
 	}
 
-	getSections (opt: GetSectionsOptions): Promise<Section[]> {
-		const getSections = new GetSections(opt);
+	getSections (page: string): Promise<Section[]> {
+		const getSectionsOpts = new GetSectionsOptions(page);
+		const getSections = new GetSections(getSectionsOpts);
 		return this.action(getSections) as Promise<Section[]>;
 	}
 

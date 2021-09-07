@@ -1,5 +1,5 @@
 import { Options } from './Options';
-import { namespace } from '../global-types';
+import { namespace, catMemberType } from '../global-types';
 
 const namespaces = {
 	'Main': 0,
@@ -19,8 +19,6 @@ const namespaces = {
 	'Category': 14,
 	'Category talk': 15
 };
-
-type catMemberType = 'file' | 'page' | 'subcat';
 
 export class GetCatMembersOptions extends Options {
 	cmtitle: string;
