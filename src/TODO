@@ -1,5 +1,5 @@
 TESTING
-	RequestHandler
+	RequestHandler	v
 	Logger			v
 
 	GetWikitext		v
@@ -14,5 +14,5 @@ TESTING
 	Upload			v
 !	Revert			v
 
-handle export stuff more handy
-mark every method that is meant for the user
+handle export stuff more handy					v
+mark every method that is meant for the user	not needed
