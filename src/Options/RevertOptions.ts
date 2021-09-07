@@ -1,6 +1,6 @@
-import Options from './Options';
+import { Options } from './Options';
 
-export default class RevertOptions extends Options {
+export class RevertOptions extends Options {
 	user = 'self';
 	start?: Date;
 

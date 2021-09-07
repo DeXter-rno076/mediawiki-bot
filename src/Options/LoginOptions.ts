@@ -1,7 +1,7 @@
-import Bot from "../Bot";
-import Options from "./Options";
+import { Bot } from "../Bot";
+import { Options } from "./Options";
 
-export default class LoginOptions extends Options {
+export class LoginOptions extends Options {
 	username: string;
 	password: string;
 	logintoken?: string;

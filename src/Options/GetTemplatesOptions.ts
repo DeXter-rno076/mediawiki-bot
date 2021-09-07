@@ -1,8 +1,8 @@
-import Options from './Options';
-import GetWikitextOptions from './GetWikitextOptions';
+import { Options } from './Options';
+import { GetWikitextOptions } from './GetWikitextOptions';
 import GetWikitext from '../BotActions/GetWikitext';
 
-export default class GetTemplatesOptions extends Options {
+export class GetTemplatesOptions extends Options {
 	title: string;
 	prop = 'parsetree';
 	text?: string;

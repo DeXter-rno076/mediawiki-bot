@@ -1,10 +1,10 @@
-import Bot from '../Bot';
-import RevertOptions from "../Options/RevertOptions";
+import { Bot } from '../Bot';
+import { RevertOptions } from "../Options/RevertOptions";
 import BotAction from "./BotAction";
 import fs from 'fs';
 import RequestHandler from '../RequestHandler';
-import GetRevisionsOptions from "../Options/GetRevisionsOptions";
-import UndoOptions from '../Options/UndoOptions';
+import { GetRevisionsOptions } from "../Options/GetRevisionsOptions";
+import { UndoOptions } from '../Options/UndoOptions';
 import Undo from './Undo';
 import BotActionReturn from '../BotActionReturn';
 

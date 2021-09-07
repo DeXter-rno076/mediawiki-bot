@@ -1,4 +1,4 @@
-import Options from './Options';
+import { Options } from './Options';
 import { namespace } from '../global-types';
 
 const namespaces = {
@@ -22,7 +22,7 @@ const namespaces = {
 
 type catMemberType = 'file' | 'page' | 'subcat';
 
-export default class GetCatMembersOptions extends Options {
+export class GetCatMembersOptions extends Options {
 	cmtitle: string;
 	cmlimit: number | 'max' = 'max';
 	cmnamespace = '0';

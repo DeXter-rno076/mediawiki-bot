@@ -1,9 +1,9 @@
 import BotAction from "./BotAction";
-import GetWikitextOptions from "../Options/GetWikitextOptions";
+import { GetWikitextOptions } from "../Options/GetWikitextOptions";
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
 import GetSections from "./GetSections";
-import GetSectionsOptions from "../Options/GetSectionsOptions";
+import { GetSectionsOptions } from "../Options/GetSectionsOptions";
 import { ErrorResponse } from "../global-types";
 import { PageDoesNotExistError, UnsolvableErrorError } from "../errors";
 

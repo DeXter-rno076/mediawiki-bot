@@ -1,6 +1,6 @@
-import Options from './Options';
+import { Options } from './Options';
 
-export default class MoveOptions extends Options {
+export class MoveOptions extends Options {
 	from: string;
 	to: string;
 	reason: string;

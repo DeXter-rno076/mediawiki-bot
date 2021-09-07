@@ -1,5 +1,5 @@
 import BotAction from "./BotAction";
-import GetTemplatesOptions from "../Options/GetTemplatesOptions";
+import { GetTemplatesOptions } from "../Options/GetTemplatesOptions";
 import { XMLParser, NormalTag, Tag, TagContent } from '../XMLParser';
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
@@ -67,7 +67,7 @@ export class Template {
 	}
 }
 
-class Parameter {
+export class Parameter {
 	title: string;
 	indexed: boolean;
 	text: string = '';

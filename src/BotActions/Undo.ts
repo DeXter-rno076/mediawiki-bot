@@ -1,6 +1,6 @@
 import BotActionReturn from "../BotActionReturn";
 import LogEntry from "../LogEntry";
-import UndoOptions from "../Options/UndoOptions";
+import { UndoOptions } from "../Options/UndoOptions";
 import RequestHandler from "../RequestHandler";
 import BotAction from "./BotAction";
 

@@ -1,6 +1,6 @@
-import Options from "./Options";
+import { Options } from "./Options";
 
-export default class UndoOptions extends Options {
+export class UndoOptions extends Options {
 	title: string;
 	undo: number;
 	bot = true;

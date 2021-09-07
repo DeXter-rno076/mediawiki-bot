@@ -1,5 +1,5 @@
 import BotAction from "./BotAction";
-import MoveOptions from "../Options/MoveOptions";
+import { MoveOptions } from "../Options/MoveOptions";
 import BotActionReturn from "../BotActionReturn";
 import RequestHandler from "../RequestHandler";
 import LogEntry from "../LogEntry";

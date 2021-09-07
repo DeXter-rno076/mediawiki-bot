@@ -1,6 +1,6 @@
-import Options from './Options';
+import { Options } from './Options';
 
-export default class EditOptions extends Options {
+export class EditOptions extends Options {
 	title: string;
 	text: string;
 	summary: string;

@@ -1,4 +1,4 @@
-import GetSectionsOptions from "../Options/GetSectionsOptions";
+import { GetSectionsOptions } from "../Options/GetSectionsOptions";
 import BotAction from "./BotAction";
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from '../BotActionReturn';

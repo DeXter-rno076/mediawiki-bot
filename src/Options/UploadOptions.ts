@@ -1,6 +1,6 @@
-import Options from "./Options";
+import { Options } from "./Options";
 
-export default class UploadOptions extends Options {
+export class UploadOptions extends Options {
 	uploadType: 'local' | 'remote';
 	filename: string;
 	comment: string;

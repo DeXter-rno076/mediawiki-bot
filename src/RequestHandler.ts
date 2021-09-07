@@ -1,8 +1,8 @@
-import Bot from './Bot';
-import Options from './Options/Options';
+import { Bot } from './Bot';
+import { Options } from './Options/Options';
 import * as req from 'request';
 import { mwActionType } from './global-types';
-import GetTokenOptions from './Options/GetTokenOptions';
+import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 //todo feels unclean
 const request = req.defaults({jar: true})
@@ -45,8 +45,6 @@ export default class RequestHandler {
 					reject(error);
 				}
 
-				//todo retry stuff
-
 				resolve(body);
 			});
 		});
@@ -74,8 +72,8 @@ export default class RequestHandler {
 			}
 
 			if (typeof opt[k] === 'boolean') {
-				//@ts-ignore
 				//some subclasses of Options have boolean attributes
+				//@ts-expect-error
 				if (opt[k] === false) {
 					delete opt[k];
 				}

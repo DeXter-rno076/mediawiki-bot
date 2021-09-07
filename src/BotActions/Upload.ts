@@ -1,5 +1,5 @@
 import BotAction from "./BotAction";
-import UploadOptions from "../Options/UploadOptions";
+import { UploadOptions } from "../Options/UploadOptions";
 import BotActionReturn from "../BotActionReturn";
 import RequestHandler from "../RequestHandler";
 import LogEntry from "../LogEntry";

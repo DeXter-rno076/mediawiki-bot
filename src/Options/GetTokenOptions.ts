@@ -1,7 +1,7 @@
-import Options from "./Options";
+import { Options } from "./Options";
 import { mwActionType, tokenType } from "../global-types";
 
-export default class GetTokenOptions extends Options {
+export class GetTokenOptions extends Options {
 	meta = 'tokens';
 	type: tokenType;
 

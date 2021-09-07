@@ -1,6 +1,6 @@
-import Options from "./Options";
+import { Options } from "./Options";
 
-export default class GetRevisionsOptions extends Options {
+export class GetRevisionsOptions extends Options {
 	list = 'usercontribs';
 	uclimit = 'max';
 	ucend?: string;

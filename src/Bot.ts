@@ -2,26 +2,26 @@ import fs from 'fs';
 import Logger from './Logger';
 import { actionReturnType, CatMember, Section } from './global-types';
 import BotAction from './BotActions/BotAction';
-import LoginOptions from './Options/LoginOptions';
+import { LoginOptions } from './Options/LoginOptions';
 import Login from './BotActions/Login';
-import EditOptions from './Options/EditOptions';
+import { EditOptions } from './Options/EditOptions';
 import Edit from './BotActions/Edit';
-import MoveOptions from './Options/MoveOptions';
+import { MoveOptions } from './Options/MoveOptions';
 import Move from './BotActions/Move';
-import RevertOptions from './Options/RevertOptions';
+import { RevertOptions } from './Options/RevertOptions';
 import Revert from './BotActions/Revert';
-import UploadOptions from './Options/UploadOptions';
+import { UploadOptions } from './Options/UploadOptions';
 import Upload from './BotActions/Upload';
-import GetCatMembersOptions from './Options/GetCatMembersOptions';
+import { GetCatMembersOptions } from './Options/GetCatMembersOptions';
 import GetCatMembers from './BotActions/GetCatMembers';
-import GetTemplatesOptions from './Options/GetTemplatesOptions';
+import { GetTemplatesOptions } from './Options/GetTemplatesOptions';
 import GetTemplates, { Template } from './BotActions/GetTemplates';
-import GetWikitextOptions from './Options/GetWikitextOptions';
+import { GetWikitextOptions } from './Options/GetWikitextOptions';
 import GetWikitext from './BotActions/GetWikitext';
-import GetSectionsOptions from './Options/GetSectionsOptions';
+import { GetSectionsOptions } from './Options/GetSectionsOptions';
 import GetSections from './BotActions/GetSections';
 
-export default class Bot {
+export class Bot {
 	static username: string;
 	static password: string;
 	static url: string;

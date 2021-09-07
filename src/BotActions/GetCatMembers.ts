@@ -1,5 +1,5 @@
 import BotAction from "./BotAction";
-import GetCatMembersOptions from "../Options/GetCatMembersOptions";
+import { GetCatMembersOptions } from "../Options/GetCatMembersOptions";
 import BotActionReturn from "../BotActionReturn";
 import RequestHandler from "../RequestHandler";
 import { CatMember } from "../global-types";

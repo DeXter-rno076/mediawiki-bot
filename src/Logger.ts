@@ -1,4 +1,4 @@
-import Bot from './Bot';
+import { Bot } from './Bot';
 import * as fs from 'fs';
 import LogEntry from './LogEntry';
 

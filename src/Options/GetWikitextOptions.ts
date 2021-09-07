@@ -1,6 +1,6 @@
-import Options from './Options';
+import { Options } from './Options';
 
-export default class GetWikitextOptions extends Options {
+export class GetWikitextOptions extends Options {
 	page: string;
 	prop = 'wikitext';
 	section?: string | number;

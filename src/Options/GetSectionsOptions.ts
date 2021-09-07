@@ -1,6 +1,6 @@
-import Options from './Options';
+import { Options } from './Options';
 
-export default class GetSectionsOptions extends Options {
+export class GetSectionsOptions extends Options {
 	prop = 'sections';
 	page: string;
 	

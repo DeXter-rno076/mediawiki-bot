@@ -1,7 +1,7 @@
 import BotAction from "./BotAction";
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
-import GetTokenOptions from '../Options/GetTokenOptions';
+import { GetTokenOptions } from '../Options/GetTokenOptions';
 import { CantGetTokenError } from "../errors";
 
 export default class GetToken extends BotAction {
