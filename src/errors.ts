@@ -50,3 +50,13 @@ export class CantGetTokenError extends Error {
 		}
 	}
 }
+
+export class ProtectedPageError extends Error {
+	constructor (page: string) {
+		super(`cant edit page ${page} because it is protected.`);
+
+		if (Error.captureStackTrace) {
+			Error.captureStackTrace(this, ProtectedPageError);
+		}
+	}
+}

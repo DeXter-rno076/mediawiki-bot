@@ -6,7 +6,7 @@ import EditOptions from '../Options/EditOptions';
 import GetSectionsOptions from '../Options/GetSectionsOptions';
 import GetSections from '../BotActions/GetSections';
 import { ErrorResponse } from '../global-types';
-import { BadTokenError, PageDoesNotExistError, UnsolvableErrorError } from '../errors';
+import { BadTokenError, PageDoesNotExistError, UnsolvableErrorError, ProtectedPageError } from '../errors';
 
 export default class Edit extends BotAction {
 	opt: EditOptions;
@@ -42,17 +42,20 @@ export default class Edit extends BotAction {
 
 	async handleError (parsedRes: ErrorResponse): Promise<string> {
 		const eCode = parsedRes.error.code;
-		if (eCode === 'badtoken') {
-			for (let i = 0; i < this.MAX_RETRYS; i++) {
-				const res = await RequestHandler.post(this.opt);
-				const parsedRes = JSON.parse(res);
-				if (parsedRes.error === undefined) {
-					return res;
+		switch (eCode) {
+			case 'badtoken':
+				for (let i = 0; i < this.MAX_RETRYS; i++) {
+					const res = await RequestHandler.post(this.opt);
+					const parsedRes = JSON.parse(res);
+					if (parsedRes.error === undefined) {
+						return res;
+					}
 				}
-			}
-			throw new BadTokenError();
-		} else if (eCode === 'missingtitle') {
-			throw new PageDoesNotExistError(this.opt.title, 'edit');
+				throw new BadTokenError();
+			case 'missingtitle':
+				throw new PageDoesNotExistError(this.opt.title, 'edit');
+			case 'protectedpage':
+				throw new ProtectedPageError(this.opt.title);
 		}
 		throw new UnsolvableErrorError(eCode);
 	}
