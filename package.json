@@ -1,6 +1,6 @@
 {
   "name": "mediawiki-bot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Bot for automated requests to wikis using the MediaWiki API.",
   "keywords": [
     "MediaWiki",
