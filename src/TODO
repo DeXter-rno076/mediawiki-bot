@@ -16,3 +16,6 @@ TESTING
 
 handle export stuff more handy					v
 mark every method that is meant for the user	not needed
+
+local file upload
+maybe add get and post methods to Bot for exotic manual requests
