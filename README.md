@@ -86,7 +86,7 @@ No parameters. Just use:
 await bot.login();
 ```
 ## getLogger
-Returns the logger object. By using `saveMsg(msg: string)` you can add a custem log line to the current log file.
+Returns the logger object. By using `saveMsg(msg: string)` you can add a custom log line to the current log file.
 Example:
 ```ts
 const logger = bot.getLogger();
@@ -158,7 +158,7 @@ Possible errors:
 ### getting category members
 Parameters:
 * category name: string
-* namespaces: namespace[] (optional; array of namespaces that shall be exclusevely be included in the resulting array)
+* namespaces: namespace[] (optional; array of namespaces that shall exclusevely be included in the resulting array)
 * type: 'file' | 'page' | 'subcat' (optional; what kind of members will be returned; default: 'page')
 
 Return value: array of CatMember objects. These are built up like this:
@@ -274,25 +274,15 @@ async function main() {
 
 	await bot.login();
 
-	// getting template object ===================================================
 	const templates = await bot.getTemplates(pageName);
-
 	const targetTemplate = templates.find(item => {
 		return item.title === 'Cool table';
 	});
-	if (targetTemplate === undefined) {
-		console.log('template not found');
-		return;
-	}
+
 	//creating a text copy because we need the original template code for string replace
 	const oldTemplateText = String(targetTemplate);
 
-	// editing parameter ==========================================================
 	const param = targetTemplate.getParam('coolnessRate');
-	if (param === null) {
-		console.log('param not found');
-		return;
-	}
 	param.text = 'unlimited';
 
 	//replacing template code and sending edit request ============================
