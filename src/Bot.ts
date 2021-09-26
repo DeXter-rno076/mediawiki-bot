@@ -36,8 +36,9 @@ export class Bot {
 		if (noLogs !== undefined) {
 			Bot.noLogs = noLogs;
 		}
+		Bot.logger = new Logger();
 		if (!Bot.noLogs) {
-			Bot.logger = new Logger();
+			Bot.logger.initDirStructure();
 		}
 	}
 
@@ -230,9 +231,7 @@ export class Bot {
 
 	private async action (task: BotAction): Promise<actionReturnType> {
 		const result = await task.exc();
-		if (!Bot.noLogs && result.status !== undefined) {
-			Bot.logger.save(result.status);
-		}
+		Bot.logger.save(result.status);
 		return result.data;
 	}
 }

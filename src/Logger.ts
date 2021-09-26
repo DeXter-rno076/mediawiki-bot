@@ -13,12 +13,7 @@ export class Logger {
 	//depends on Bot.taskId => cant be readonly
 	logFileName = '';
 
-	constructor () {
-		this.initDirStructure();
-		if (Bot.taskId === -1) {
-			throw 'something went wrong in logger initialization. Task id still has starting value';
-		}
-	}
+	constructor () {}
 
 	initDirStructure () {
 		let logData: MainlogEntry[] = [];
@@ -41,6 +36,10 @@ export class Logger {
 			fs.writeFileSync(this.logFileName, '');
 			this.addNewMainLogEntry(logData);
 		}
+
+		if (Bot.taskId === -1) {
+			throw 'something went wrong in logger initialization. Task id still has starting value';
+		}
 	}
 
 	addNewMainLogEntry (logData: MainlogEntry[]) {
@@ -54,14 +53,24 @@ export class Logger {
 	}
 
 	//is called from one central place in class Bot
-	save (msg: LogEntry) {
+	save (msg?: LogEntry) {
+		if (msg === undefined) {
+			return;
+		}
+
 		const txt = msg.print();
 		console.log(txt);
-		fs.appendFileSync(this.logFileName, txt + '\n');
+		if (!Bot.noLogs) {
+			fs.appendFileSync(this.logFileName, txt + '\n');
+		}
 	}
 
 	//supposed to be called by the user
 	saveMsg (msg: string) {
+		if (Bot.noLogs) {
+			console.error('cant save custom messages when noLogs is set to true');
+			return;
+		}
 		fs.appendFileSync(this.logFileName, msg + '\n');
 	}
 }
