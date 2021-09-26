@@ -6,6 +6,7 @@ export class UploadOptions extends Options {
 	comment: string;
 	url?: string
 	ignorewarnings = false;
+	cutServerResponse = true;
 
 	//todo a lot of stuff is missing for upload of local files
 
@@ -22,5 +23,9 @@ export class UploadOptions extends Options {
 
 	setIgnoreWarnings (input: boolean) {
 		this.ignorewarnings = input;
+	}
+
+	setCutServerResponse (input: boolean) {
+		this.cutServerResponse = input;
 	}
 }

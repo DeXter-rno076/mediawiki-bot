@@ -123,12 +123,16 @@ export class Bot {
 		wantedName: string,
 		comment: string,
 		url: string,
-		ignoreWarnings?: boolean
+		ignoreWarnings?: boolean,
+		cutServerResponse?: boolean
 	): Promise<''> {
 		const uploadOpts = new UploadOptions(uploadType, wantedName, comment);
 		uploadOpts.setFileUrl(url);
 		if (ignoreWarnings !== undefined) {
 			uploadOpts.setIgnoreWarnings(ignoreWarnings);
+		}
+		if (cutServerResponse !== undefined) {
+			uploadOpts.setCutServerResponse(cutServerResponse);
 		}
 		const upload = new Upload(uploadOpts);
 		return this.action(upload) as Promise<''>;

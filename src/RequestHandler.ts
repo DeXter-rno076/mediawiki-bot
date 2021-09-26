@@ -68,7 +68,8 @@ export default class RequestHandler {
 	static prepare (opt: Options) {
 		//list of attributes that arent meant for the wiki server
 		const attributeBlacklist = [
-			'uploadType'
+			'uploadType',
+			'cutServerResponse'
 		];
 
 		let k: keyof Options;
