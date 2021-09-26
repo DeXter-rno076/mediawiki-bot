@@ -115,7 +115,7 @@ export default class GetTemplates extends BotAction {
 
 	async exc (): Promise<BotActionReturn> {
 		await this.opt.setText();
-		const res = JSON.parse(await RequestHandler.get(this.opt));
+		const res = JSON.parse(await RequestHandler.post(this.opt));
 		const xmlData = res.expandtemplates.parsetree;
 		const xmlParser = new XMLParser(xmlData);
 		const jsonCode =  xmlParser.parse();

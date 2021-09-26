@@ -8,6 +8,14 @@ import GetToken from './BotActions/GetToken';
 const request = req.defaults({jar: true})
 
 export default class RequestHandler {
+	static skipAssertBot = [
+		'clientlogin',
+		'expandtemplates'
+	];
+	static skipToken = [
+		'expandtemplates'
+	];
+
 	static get (opt: Options): Promise<string> {
 		RequestHandler.prepare(opt);
 		return new Promise((resolve, reject) => {
@@ -25,15 +33,14 @@ export default class RequestHandler {
 
 	//todo split this up
 	static async post (opt: Options): Promise<string> {
-		if (opt.action !== 'clientlogin') {
+		if (!RequestHandler.skipAssertBot.includes(opt.action)) {
 			opt.setAssert('bot');
 		}
 		RequestHandler.prepare(opt);
 
-		const token = await RequestHandler.getToken(opt.action);
-		opt.setToken(token);
-		if (opt.action !== 'clientlogin') {
-			opt.setAssert('bot');
+		if (!RequestHandler.skipToken.includes(opt.action)) {
+			const token = await RequestHandler.getToken(opt.action);
+			opt.setToken(token);
 		}
 
 		return new Promise ((resolve, reject) => {
