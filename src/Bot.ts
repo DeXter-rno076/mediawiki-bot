@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Logger } from './Logger';
-import { actionReturnType, CatMember, namespace, Section, catMemberType } from './global-types';
+import { actionReturnType, CatMember, namespace, Section, catMemberType, tokenType } from './global-types';
 import BotAction from './BotActions/BotAction';
 import { LoginOptions } from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -20,6 +20,9 @@ import { GetWikitextOptions } from './Options/GetWikitextOptions';
 import GetWikitext from './BotActions/GetWikitext';
 import { GetSectionsOptions } from './Options/GetSectionsOptions';
 import GetSections from './BotActions/GetSections';
+import { GetTokenOptions } from './Options/GetTokenOptions';
+import GetToken from './BotActions/GetToken';
+import RequestHandler from './RequestHandler';
 
 export class Bot {
 	static username: string;
@@ -197,6 +200,35 @@ export class Bot {
 		const getSectionsOpts = new GetSectionsOptions(page);
 		const getSections = new GetSections(getSectionsOpts);
 		return this.action(getSections) as Promise<Section[]>;
+	}
+
+	/**
+	 * @param type (string) token type (most common types: csrf, login)
+	 * @returns Promise<string>
+	 * @throws CantGetTokenError
+	 */
+	getToken (type: tokenType): Promise<string> {
+		const getTokenOpts = new GetTokenOptions(type);
+		const getToken = new GetToken(getTokenOpts);
+		return this.action(getToken) as Promise<string>;
+	}
+
+	/**
+	 * 
+	 * @param opts (Object) options object used for the custom request
+	 * @returns Promise<string>
+	 */
+	get (opts: any): Promise<string> {
+		return RequestHandler.rawGet(opts);
+	}
+
+	/**
+	 * 
+	 * @param opts (Object) options object used for the custom request
+	 * @returns Promise<string>
+	 */
+	post (opts: any): Promise<string> {
+		return RequestHandler.rawPost(opts);
 	}
 
 	/**

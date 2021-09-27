@@ -18,20 +18,12 @@ export default class RequestHandler {
 
 	static get (opt: Options): Promise<string> {
 		RequestHandler.prepare(opt);
-		return new Promise((resolve, reject) => {
-			request.get({
-				url: Bot.url,
-				qs: opt
-			}, (error, response, body) => {
-				if (error) {
-					reject(error);
-				}
-				resolve(body);
-			});
+		return this.rawGet({
+			url: Bot.url,
+			qs: opt
 		});
 	}
 
-	//todo split this up
 	static async post (opt: Options): Promise<string> {
 		if (!RequestHandler.skipAssertBot.includes(opt.action)) {
 			opt.setAssert('bot');
@@ -43,11 +35,27 @@ export default class RequestHandler {
 			opt.setToken(token);
 		}
 
+		return this.rawPost({
+			url: Bot.url,
+			form: opt
+		});
+	}
+
+	static async rawGet (opt: any): Promise<string> {
 		return new Promise ((resolve, reject) => {
-			request.post({
-				url: Bot.url,
-				form: opt
-			}, (error, response, body) => {
+			request.get(opt, (error, response, body) => {
+				if (error) {
+					reject(error);
+				}
+
+				resolve(body);
+			});
+		});
+	}
+
+	static async rawPost (opt: any): Promise<string> {
+		return new Promise ((resolve, reject) => {
+			request.post(opt, (error, response, body) => {
 				if (error) {
 					reject(error);
 				}
