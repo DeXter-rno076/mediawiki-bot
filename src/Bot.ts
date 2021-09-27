@@ -23,6 +23,7 @@ import GetSections from './BotActions/GetSections';
 import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 import RequestHandler from './RequestHandler';
+import { UnsolvableErrorError } from '.';
 
 export class Bot {
 	static username: string;
@@ -31,8 +32,9 @@ export class Bot {
 	static logger: Logger;
 	static taskId = -1;
 	static noLogs = false;
+	static reLogin = true;
 
-	constructor (username: string, password: string, url: string, noLogs?: boolean) {
+	constructor (username: string, password: string, url: string, noLogs?: boolean, reLogin = true) {
 		Bot.username = username;
 		Bot.password = password;
 		Bot.url = url;
@@ -43,15 +45,16 @@ export class Bot {
 		if (!Bot.noLogs) {
 			Bot.logger.initDirStructure();
 		}
+		Bot.reLogin = reLogin;
 	}
 
 	/**
 	 * @returns Promise<''>
 	 */
-	login (): Promise<''> {
+	login (): Promise<string> {
 		const loginOpt = new LoginOptions(Bot.username, Bot.password);
 		const login = new Login(loginOpt);
-		return this.action(login) as Promise<''>;
+		return this.action(login) as Promise<string>;
 	}
 
 	/**
@@ -71,7 +74,7 @@ export class Bot {
 			eOpts.setNoCreate(nocreate);
 		}
 		const edit = new Edit(eOpts);
-		return this.action(edit) as Promise<''>;
+		return this.action(edit) as Promise<string>;
 	}
 
 	/**
@@ -97,7 +100,7 @@ export class Bot {
 			moveOpts.setAdvancedSettings(moveTalk, moveSubpgabes, noredirect);
 		}
 		const move = new Move(moveOpts);
-		return this.action(move) as Promise<''>;
+		return this.action(move) as Promise<string>;
 	}
 
 	/**
@@ -109,7 +112,7 @@ export class Bot {
 	revert (user: string, start?: Date): Promise<string> {
 		const revOpts = new RevertOptions(user, start);
 		const revert = new Revert(revOpts);
-		return this.action(revert) as Promise<''>;
+		return this.action(revert) as Promise<string>;
 	}
 
 	/**
@@ -138,7 +141,7 @@ export class Bot {
 			uploadOpts.setCutServerResponse(cutServerResponse);
 		}
 		const upload = new Upload(uploadOpts);
-		return this.action(upload) as Promise<''>;
+		return this.action(upload) as Promise<string>;
 	}
 
 	/**
@@ -266,7 +269,23 @@ export class Bot {
 	}
 
 	private async action (task: BotAction): Promise<actionReturnType> {
-		const result = await task.exc();
+		let result;
+		try {
+			result = await task.exc();
+		} catch (e) {
+			if (!Bot.reLogin) {
+				throw e;
+			}
+
+			if (e instanceof UnsolvableErrorError && e.eType === 'assertbotfailed') {
+				console.log('bot got logged out, logging in and trying again');
+				await this.login();
+				result = await task.exc();
+			} else {
+				throw e;
+			}
+		}
+
 		Bot.logger.save(result.status);
 		if (result.data !== '') {
 			return result.data;
