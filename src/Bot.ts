@@ -65,7 +65,7 @@ export class Bot {
 	 * 
 	 * @throws BadTokenError, PageDoesNotExistError, ProtectedPageError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	edit (title: string, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<''> {
+	edit (title: string, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
 		const eOpts = new EditOptions(title, text, summary, section);
 		if (nocreate !== undefined) {
 			eOpts.setNoCreate(nocreate);
@@ -91,7 +91,7 @@ export class Bot {
 		moveTalk = true,
 		moveSubpgabes = true,
 		noredirect = true
-	): Promise<''> {
+	): Promise<string> {
 		const moveOpts = new MoveOptions(from, to, summary);
 		if (!moveTalk || !moveSubpgabes || !noredirect) {
 			moveOpts.setAdvancedSettings(moveTalk, moveSubpgabes, noredirect);
@@ -106,7 +106,7 @@ export class Bot {
 	 * 
 	 * @returns Promise<''>
 	 */
-	revert (user: string, start?: Date): Promise<''> {
+	revert (user: string, start?: Date): Promise<string> {
 		const revOpts = new RevertOptions(user, start);
 		const revert = new Revert(revOpts);
 		return this.action(revert) as Promise<''>;
@@ -128,7 +128,7 @@ export class Bot {
 		url: string,
 		ignoreWarnings?: boolean,
 		cutServerResponse?: boolean
-	): Promise<''> {
+	): Promise<string> {
 		const uploadOpts = new UploadOptions(uploadType, wantedName, comment);
 		uploadOpts.setFileUrl(url);
 		if (ignoreWarnings !== undefined) {
@@ -268,6 +268,14 @@ export class Bot {
 	private async action (task: BotAction): Promise<actionReturnType> {
 		const result = await task.exc();
 		Bot.logger.save(result.status);
-		return result.data;
+		if (result.data !== '') {
+			return result.data;
+		} else {
+			if (result.status === undefined) {
+				console.error('error in getting status msg of ' + JSON.stringify(result));
+				return;
+			}
+			return result.status.msg;
+		}
 	}
 }
