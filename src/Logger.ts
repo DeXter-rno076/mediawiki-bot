@@ -8,33 +8,36 @@ interface MainlogEntry {
 }
 
 export class Logger {
-	readonly DIR_PATH = './logs';
-	readonly mainlogFileName = `${this.DIR_PATH}/mainlog.json`;
-	//depends on Bot.taskId => cant be readonly
-	logFileName = '';
+	DIR_PATH: string;
+	URL_LIST_PATH: string;
+	URL_INDEX = -1;
+	URL_DIR_PATH = '';
+	MAINLOG_PATH = '';
+	LOG_FILE_PATH = '';
 
-	constructor () {}
+	constructor () {
+		this.DIR_PATH = './logs';
+		this.URL_LIST_PATH = this.DIR_PATH + '/urlList.json';
+	}
 
 	initDirStructure () {
-		let logData: MainlogEntry[] = [];
 		try {
 			//accesSync throws an error if it cant reach the targeted path
 			fs.accessSync(this.DIR_PATH, fs.constants.F_OK);
+			this.setUrlDirPaths();
 
-			logData = JSON.parse(fs.readFileSync(
-				this.mainlogFileName, {encoding: 'utf8'}
-			)) as MainlogEntry[];
-			const lastTaskId = logData[logData.length - 1].id as number;
-			Bot.taskId = lastTaskId + 1;
+			try {
+				fs.accessSync(this.URL_DIR_PATH, fs.constants.F_OK);
+
+				//url directory already exists
+				this.getTaskId();
+			} catch (e) {
+				this.createUrlDirectory();
+			}
 		} catch (e) {
-			fs.mkdirSync(this.DIR_PATH);
-			fs.writeFileSync(this.mainlogFileName, '[]');
-			Bot.taskId = 0;
-			logData = [];
+			this.createEntireDirStructure();
 		} finally {
-			this.logFileName = `${this.DIR_PATH}/${Bot.taskId}.txt`;
-			fs.writeFileSync(this.logFileName, '');
-			this.addNewMainLogEntry(logData);
+			this.createLogFile();
 		}
 
 		if (Bot.taskId === -1) {
@@ -42,14 +45,87 @@ export class Logger {
 		}
 	}
 
-	addNewMainLogEntry (logData: MainlogEntry[]) {
+	//=====================================================
+
+	createEntireDirStructure () {
+		this.createLogDirectory();
+		this.setUrlDirPaths();
+		this.createUrlDirectory();
+	}
+
+	setUrlDirPaths () {
+		this.URL_INDEX = this.getUrlIndex();
+		this.URL_DIR_PATH = this.DIR_PATH + '/' + this.URL_INDEX;
+		this.MAINLOG_PATH = this.URL_DIR_PATH + '/mainlog.json';
+	}
+
+	getTaskId () {
+		const mainLogData = JSON.parse(fs.readFileSync(
+			this.MAINLOG_PATH, {encoding: 'utf8'}
+		)) as MainlogEntry[];
+
+		const lastTaskId = mainLogData[mainLogData.length - 1].id as number;
+
+		Bot.taskId = lastTaskId + 1;
+	}
+
+	//=====================================================
+
+	createLogDirectory () {
+		fs.mkdirSync(this.DIR_PATH);
+		fs.writeFileSync(this.URL_LIST_PATH, '{}');
+	}
+
+	createUrlDirectory () {
+		fs.mkdirSync(this.URL_DIR_PATH);
+
+		const urlList = JSON.parse(fs.readFileSync(this.URL_LIST_PATH, {encoding: 'utf-8'}));
+		urlList[Bot.url] = this.URL_INDEX;
+		fs.writeFileSync(this.URL_LIST_PATH, JSON.stringify(urlList));
+
+		fs.writeFileSync(this.MAINLOG_PATH, '[]');
+
+		Bot.taskId = 0;
+	}
+
+	//=====================================================
+
+	createLogFile () {
+		this.LOG_FILE_PATH = `${this.URL_DIR_PATH}/${Bot.taskId}.txt`;
+		fs.writeFileSync(this.LOG_FILE_PATH, '');
+
+		this.addNewMainLogEntry();
+	}
+
+	addNewMainLogEntry () {
+		const mainLogData = JSON.parse(fs.readFileSync(this.MAINLOG_PATH, {encoding: 'utf-8'})) as MainlogEntry[];
+
 		const time = new Date();
 		const taskLog: MainlogEntry = {
 			id: Bot.taskId,
 			timestamp: time.toISOString()
 		}
-		logData.push(taskLog);
-		fs.writeFileSync(this.mainlogFileName, JSON.stringify(logData));
+
+		mainLogData.push(taskLog);
+		fs.writeFileSync(this.MAINLOG_PATH, JSON.stringify(mainLogData));
+	}
+
+	//=====================================================
+
+	getUrlIndex (): number {
+		const urlList = JSON.parse(fs.readFileSync(this.URL_LIST_PATH, {encoding: 'utf-8'}));
+		const urlIndex = urlList[Bot.url] as number | undefined;
+
+		if (urlIndex === undefined) {
+			const keys = Object.keys(urlList);
+			if (keys.length === 0) {
+				//urlList is empty
+				return 0;
+			}
+			const lastKey = keys[keys.length - 1];
+			return urlList[lastKey] + 1;
+		}
+		return urlIndex;
 	}
 
 	//is called from one central place in class Bot
@@ -61,7 +137,7 @@ export class Logger {
 		const txt = msg.print();
 		console.log(txt);
 		if (!Bot.noLogs) {
-			fs.appendFileSync(this.logFileName, txt + '\n');
+			fs.appendFileSync(this.LOG_FILE_PATH, txt + '\n');
 		}
 	}
 
@@ -71,6 +147,6 @@ export class Logger {
 			console.error('cant save custom messages when noLogs is set to true');
 			return;
 		}
-		fs.appendFileSync(this.logFileName, msg + '\n');
+		fs.appendFileSync(this.LOG_FILE_PATH, msg + '\n');
 	}
 }

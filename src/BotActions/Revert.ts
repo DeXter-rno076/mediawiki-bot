@@ -29,7 +29,7 @@ export default class Revert extends BotAction {
 
 	async exc (): Promise<BotActionReturn> {
 		if (this.opt.user === 'self') {
-			const botTasks = JSON.parse(fs.readFileSync('./logs/mainlog.json', {encoding: 'utf8'}));
+			const botTasks = JSON.parse(fs.readFileSync(Bot.logger.MAINLOG_PATH, {encoding: 'utf8'}));
 			const lastBotTask = botTasks[botTasks.length - 2];
 			const timestamp = lastBotTask.timestamp as string;
 			const timestampDate = new Date(timestamp);

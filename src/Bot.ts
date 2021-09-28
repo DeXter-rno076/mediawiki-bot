@@ -248,15 +248,23 @@ export class Bot {
 
 	//removes log files that only have the login logged
 	cleanUpLogfiles () {
-		const mainlogFile = Bot.logger.mainlogFileName;
-		const mainlog = JSON.parse(fs.readFileSync(mainlogFile, {encoding: 'utf8'}));
+		const urlListPath = Bot.logger.URL_LIST_PATH;
+		const urlList = JSON.parse(fs.readFileSync(urlListPath, {encoding: 'utf-8'}));
+		for (let url in urlList) {
+			this.cleanUpLogDir(urlList[url]);
+		}
+	}
+
+	cleanUpLogDir (dir: string) {
+		const mainlogFilePath = `${Bot.logger.DIR_PATH}/${dir}/mainlog.json`;
+		const mainlog = JSON.parse(fs.readFileSync(mainlogFilePath, {encoding: 'utf8'}));
 		if (mainlog.length === 0) {
 			return;
 		}
 
 		for (let i = 0; i < mainlog.length; i++) {
 			const taskId = mainlog[i].id;
-			const taskFilePath = Bot.logger.DIR_PATH + '/' + taskId + '.txt';
+			const taskFilePath = `${Bot.logger.DIR_PATH}/${dir}/${taskId}.txt`;
 			const logFile = fs.readFileSync(taskFilePath, {encoding: 'utf8'});
 
 			if (logFile.split('\n').length <= 2) {
@@ -266,7 +274,7 @@ export class Bot {
 				i--;
 			}
 		}
-		fs.writeFileSync(Bot.logger.DIR_PATH + '/mainlog.json', JSON.stringify(mainlog));
+		fs.writeFileSync(mainlogFilePath, JSON.stringify(mainlog));
 	}
 
 	private async action (task: BotAction): Promise<actionReturnType> {
