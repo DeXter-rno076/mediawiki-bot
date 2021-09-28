@@ -23,29 +23,44 @@ const namespaces = {
 export class GetCatMembersOptions extends Options {
 	cmtitle: string;
 	cmlimit: number | 'max' = 'max';
-	cmnamespace = '0';
-	cmtype?: catMemberType = 'page';
+	cmnamespace? = '0';
+	cmtype?: catMemberType;
 	cmprop = 'title';
 	list = 'categorymembers';
 	cmcontinue: string = '';
 
-	constructor (category: string, ns?: namespace[]) {
+	constructor (category: string, type?: catMemberType, ns?: namespace[]) {
 		super('query');
 		this.cmtitle = category;
+		if (type !== undefined) {
+			delete this.cmnamespace;
+			this.cmtype = type;
+		}
+
 		if (ns !== undefined) {
-			this.cmnamespace = String(namespaces[ns[0]]);
-			for (let i = 1; i < ns.length; i++) {
-				this.cmnamespace += ',' + namespaces[ns[i]];
+			this.setNamespaces(ns);
+		}
+	}
+
+	setNamespaces (ns: namespace[]) {
+		let nsIdentifier = ns[0];
+		if (isNaN(Number(ns[0]))) {
+			nsIdentifier = namespaces[ns[0]];
+		}
+
+		this.cmnamespace = String(nsIdentifier);
+		
+		for (let i = 1; i < ns.length; i++) {
+			let nsIdentifier = ns[i];
+			if (isNaN(Number(ns[i]))) {
+				nsIdentifier = namespaces[ns[i]];
 			}
+			this.cmnamespace += '|' + nsIdentifier;
 		}
 	}
 
 	setLimit (limit: number | 'max') {
 		this.cmlimit = limit;
-	}
-
-	setType (type: catMemberType) {
-		this.cmtype = type;
 	}
 
 	setContinue (key: string) {

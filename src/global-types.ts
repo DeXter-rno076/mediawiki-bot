@@ -13,7 +13,7 @@ export type actionReturnType = string | string[] | undefined
 
 //export type pageIdentifier = string | number;
 
-export type namespace = 'Main' | 'Talk' | 'User' | 'User talk' | 'Project talk'
+export type namespace = number | 'Main' | 'Talk' | 'User' | 'User talk' | 'Project talk'
 	| 'File' | 'File talk' | 'MediaWiki' | 'MediaWiki talk' | 'Template' | 'Template talk'
 	| 'Help' | 'Help talk' | 'Category' | 'Category talk';
 

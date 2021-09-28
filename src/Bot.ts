@@ -146,20 +146,21 @@ export class Bot {
 
 	/**
 	 * @param category (string) category name ('Category:' at the beginning is needed)
-	 * @param ns (namespace[]; optional) array of namespaces that shall exclusevely be in the result
 	 * @param type (catMemberType; optional) which kind of pages shall be in the result (default: 'page')
+	 * @param ns (namespace[]; optional) array of namespaces that shall exclusevely be in the result
 	 * 
 	 * @returns Promise<CatMember[]>
 	 */
 	getCatMembers (
 		category: string,
-		ns?: namespace[],
-		type?: catMemberType
+		type?: catMemberType,
+		ns?: namespace[]
 	): Promise<CatMember[]> {
-		const getCatMembersOpts = new GetCatMembersOptions(category, ns);
-		if (type !== undefined)  {
-			getCatMembersOpts.setType(type);
+		if (type !== undefined && typeof type !== 'string') {
+			throw 'argument "type" must be a string. Places of params "type" and ns got switched, maybe thats the problem.';
 		}
+
+		const getCatMembersOpts = new GetCatMembersOptions(category, type, ns);
 		const getCatMembers = new GetCatMembers(getCatMembersOpts);
 		return this.action(getCatMembers) as Promise<CatMember[]>;
 	}
