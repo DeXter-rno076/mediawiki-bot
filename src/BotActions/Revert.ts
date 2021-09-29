@@ -20,11 +20,13 @@ interface Revision {
 
 export default class Revert extends BotAction {
 	opt: RevertOptions;
+	bot: Bot;
 	revisions: Revision[] = [];
 
-	constructor (opt: RevertOptions) {
+	constructor (opt: RevertOptions, bot: Bot) {
 		super();
 		this.opt = opt;
+		this.bot = bot;
 	}
 
 	async exc (): Promise<BotActionReturn> {
@@ -66,9 +68,16 @@ export default class Revert extends BotAction {
 		for (let rev of this.revisions) {
 			const undoOptions = new UndoOptions(rev.title, rev.revid);
 			const undo = new Undo(undoOptions);
-			const res = await undo.exc();
-			if (res.status !== undefined) {
-				Bot.logger.save(res.status);
+			try {
+				await this.bot.action(undo);
+			} catch (e) {
+				if (e instanceof Error) {
+					const eMsg = 'Error in revert edit: ' + e.message;
+					console.error(eMsg);
+					Bot.logger.saveMsg(eMsg)
+				} else {
+					console.error('for some reason e in try catch clause in Revert.ts wasnt an error');
+				}
 			}
 		}
 	}

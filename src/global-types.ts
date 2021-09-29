@@ -37,7 +37,8 @@ export interface CatMember {
 
 export interface ErrorResponse {
 	error: {
-		code: string
+		code: string,
+		info: string
 	}
 }
 

@@ -3,8 +3,11 @@ import LogEntry from "../LogEntry";
 import { UndoOptions } from "../Options/UndoOptions";
 import RequestHandler from "../RequestHandler";
 import BotAction from "./BotAction";
+import { ErrorResponse } from "../global-types";
+import { BadTokenError, UnsolvableErrorError, NoRevIdError, UndoFailureError } from "../errors";
 
 export default class Undo extends BotAction {
+	readonly MAX_RETRYS = 5;
 	opt: UndoOptions;
 
 	constructor (opt: UndoOptions) {
@@ -13,8 +16,34 @@ export default class Undo extends BotAction {
 	}
 	
 	async exc (): Promise<BotActionReturn> {
-		const res = await RequestHandler.post(this.opt);
+		let res = await RequestHandler.post(this.opt);
+
+		const parsedResult = JSON.parse(res);
+		if (parsedResult.error !== undefined) {
+			res = await this.handleError(parsedResult as ErrorResponse);
+		}
+
 		const logEntry = new LogEntry('revert', res);
 		return new BotActionReturn(logEntry, '');
+	}
+
+	async handleError (parsedRes: ErrorResponse): Promise<string> {
+		const eCode = parsedRes.error.code;
+		switch (eCode) {
+			case 'badtoken':
+				for (let i = 0; i < this.MAX_RETRYS; i++) {
+					const res = await RequestHandler.post(this.opt);
+					const parsedRes = JSON.parse(res);
+					if (parsedRes.error === undefined) {
+						return res;
+					}
+				}
+				throw new BadTokenError();
+			case 'nosuchrevid':
+				throw new NoRevIdError(parsedRes.error.info, this.opt.title);
+			case 'undofailure':
+				throw new UndoFailureError(this.opt.title);
+		}
+		throw new UnsolvableErrorError(eCode);
 	}
 }
