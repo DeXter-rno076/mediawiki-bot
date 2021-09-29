@@ -31,6 +31,7 @@
 * added manual [get and post](#get-and-post) methods
 * added [getToken](#getting-tokens) method
 * added `end` param to [revert](#revert)
+* changed [CatMember](#catmember-class) into a class with custom toString method
 * improved `type` / `ns` parameter handling in [getCatMembers](#getting-category-members) (including switching places of `type` and `ns`)
 * added `reLogin` parameter to bot [constructor](#constructor)
 * added `cutServerResponse` param to [upload](#upload) (the default status message of uploads is very long because the entire file page content is included; this info is cut out per default now)
@@ -325,10 +326,8 @@ async function main () {
 
 	const catMembers = await bot.getCatMembers('Category:Test');
 
-	for (let page of catMembers) {
-		const title = page.title;
-	
-		let content = await bot.getWikitext(title);
+	for (let page of catMembers) {	
+		let content = await bot.getWikitext(page);
 
 		content = content.replace(/old text/g, 'new text');
 
