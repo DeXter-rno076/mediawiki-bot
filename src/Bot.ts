@@ -58,7 +58,7 @@ export class Bot {
 	}
 
 	/**
-	 * @param title (string) page that you want to edit
+	 * @param title (string | CatMember) page that you want to edit
 	 * @param text (string) new text of the page
 	 * @param summary (string) edit summary
 	 * @param nocreate (boolean; optional) if set to false, it's possible to create pages
@@ -68,8 +68,8 @@ export class Bot {
 	 * 
 	 * @throws BadTokenError, PageDoesNotExistError, ProtectedPageError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	edit (title: string, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
-		const eOpts = new EditOptions(title, text, summary, section);
+	edit (title: string | CatMember, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
+		const eOpts = new EditOptions(String(title), text, summary, section);
 		if (nocreate !== undefined) {
 			eOpts.setNoCreate(nocreate);
 		}
@@ -78,8 +78,8 @@ export class Bot {
 	}
 
 	/**
-	 * @param from (string) old name
-	 * @param to (string) new name
+	 * @param from (string | CatMember) old name
+	 * @param to (string | CatMember) new name
 	 * @param summary (string) move summary
 	 * @param moveTalk (boolean; optional) if set to false, the talk page won't be moved
 	 * @param moveSubpages (boolean; optoinal) if set to false, potential subpages won't be moved
@@ -88,14 +88,14 @@ export class Bot {
 	 * @returns Promise<''>
 	*/
 	move (
-		from: string,
-		to: string,
+		from: string | CatMember,
+		to: string | CatMember,
 		summary: string,
 		moveTalk = true,
 		moveSubpgabes = true,
 		noredirect = true
 	): Promise<string> {
-		const moveOpts = new MoveOptions(from, to, summary);
+		const moveOpts = new MoveOptions(String(from), String(to), summary);
 		if (!moveTalk || !moveSubpgabes || !noredirect) {
 			moveOpts.setAdvancedSettings(moveTalk, moveSubpgabes, noredirect);
 		}
@@ -167,42 +167,42 @@ export class Bot {
 	}
 
 	/**
-	 * @param title (string) page name
+	 * @param title (string | CatMember) page name
 	 * @param section (string | number; optional) section whose templates shall be returned
 	 * 
 	 * @returns Promise<Template[]>
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getTemplates (title: string, section?: string | number): Promise<Template[]> {
-		const getTemplatesOpts = new GetTemplatesOptions(title, section);
+	getTemplates (title: string | CatMember, section?: string | number): Promise<Template[]> {
+		const getTemplatesOpts = new GetTemplatesOptions(String(title), section);
 		const getTemplates = new GetTemplates(getTemplatesOpts);
 		return this.action(getTemplates) as Promise<Template[]>;
 	}
 
 	/**
-	 * @param page (string) page name
+	 * @param page (string | CatMember) page name
 	 * @param section (string | number; optional) section whose contents to return
 	 * 
 	 * @returns Promise<string>
 	 * 
 	 * @throws PageDoesNotExistError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	getWikitext (page: string, section?: string | number): Promise<string> {
-		const getWikitextOpts = new GetWikitextOptions(page, section);
+	getWikitext (page: string | CatMember, section?: string | number): Promise<string> {
+		const getWikitextOpts = new GetWikitextOptions(String(page), section);
 		const getWikitext = new GetWikitext(getWikitextOpts);
 		return this.action(getWikitext) as Promise<string>;
 	}
 
 	/**
-	 * @param page (string) page name
+	 * @param page (string | CatMember) page name
 	 * 
 	 * @returns Promise<Section[]>
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getSections (page: string): Promise<Section[]> {
-		const getSectionsOpts = new GetSectionsOptions(page);
+	getSections (page: string | CatMember): Promise<Section[]> {
+		const getSectionsOpts = new GetSectionsOptions(String(page));
 		const getSections = new GetSections(getSectionsOpts);
 		return this.action(getSections) as Promise<Section[]>;
 	}

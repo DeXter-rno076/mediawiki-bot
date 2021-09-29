@@ -30,11 +30,18 @@ export default class GetCatMembers extends BotAction {
 			throw `invalid category name given: ${this.opt.cmtitle}. Maybe you forgot the namespace prefix?`
 		}
 
-		this.catMembers = this.catMembers.concat(res.query.categorymembers);
+		this.addCatMembers(res.query.categorymembers);
 
 		if (res.continue !== undefined) {
 			return res.continue.cmcontinue;
 		}
 		return '';
+	}
+
+	addCatMembers (catMembersPart) {
+		for (let obj of catMembersPart) {
+			const catMember = new CatMember(obj.ns, obj.title);
+			this.catMembers.push(catMember);
+		}
 	}
 }

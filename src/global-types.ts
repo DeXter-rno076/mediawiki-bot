@@ -30,9 +30,18 @@ export interface Section {
 	anchor: string;
 }
 
-export interface CatMember {
+export class CatMember {
 	ns: number;
 	title: string;
+
+	constructor (ns: number, title: string) {
+		this.ns = ns;
+		this.title = title;
+	}
+
+	toString (): string {
+		return this.title;
+	}
 }
 
 export interface ErrorResponse {
