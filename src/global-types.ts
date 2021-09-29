@@ -17,7 +17,7 @@ export type namespace = number | 'Main' | 'Talk' | 'User' | 'User talk' | 'Proje
 	| 'File' | 'File talk' | 'MediaWiki' | 'MediaWiki talk' | 'Template' | 'Template talk'
 	| 'Help' | 'Help talk' | 'Category' | 'Category talk';
 
-export type tokenType = 'csrf' | 'login';
+export type tokenType = 'csrf' | 'login' | 'createaccount' | 'patrol' | 'rollback' | 'userrights' | 'watch';
 
 export interface Section {
 	toclevel: number;
