@@ -23,7 +23,7 @@ import GetSections from './BotActions/GetSections';
 import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 import RequestHandler from './RequestHandler';
-import { UnsolvableErrorError } from '.';
+import { UnsolvableErrorError } from './errors';
 
 export class Bot {
 	static username: string;
@@ -105,13 +105,14 @@ export class Bot {
 
 	/**
 	 * @param user (string) whose edits to revert (if set to 'self', the starting time is selected via bot logs)
-	 * @param start (Date, not needed if user is set to 'self')
+	 * @param start (Date, not needed if user is set to 'self') older timestamp (start of the time span, included)
+	 * @param end (Date; optional) newer timestamp (end of the time span, not included)
 	 * 
 	 * @returns Promise<''>
 	 */
-	revert (user: string, start?: Date): Promise<string> {
-		const revOpts = new RevertOptions(user, start);
-		const revert = new Revert(revOpts);
+	revert (user: string, start?: Date, end?: Date): Promise<string> {
+		const revOpts = new RevertOptions(user, start, end);
+		const revert = new Revert(revOpts, this);
 		return this.action(revert) as Promise<string>;
 	}
 
@@ -277,7 +278,7 @@ export class Bot {
 		fs.writeFileSync(mainlogFilePath, JSON.stringify(mainlog));
 	}
 
-	private async action (task: BotAction): Promise<actionReturnType> {
+	async action (task: BotAction): Promise<actionReturnType> {
 		let result;
 		try {
 			result = await task.exc();
@@ -299,11 +300,7 @@ export class Bot {
 		if (result.data !== '') {
 			return result.data;
 		} else {
-			if (result.status === undefined) {
-				console.error('error in getting status msg of ' + JSON.stringify(result));
-				return;
-			}
-			return result.status.msg;
+			return result.status?.msg;
 		}
 	}
 }

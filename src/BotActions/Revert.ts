@@ -36,7 +36,8 @@ export default class Revert extends BotAction {
 			const revOpts = new GetRevisionsOptions(Bot.username, timestampDate);
 			await this.getRevisions(revOpts);
 		} else {
-			const revOpts = new GetRevisionsOptions(this.opt.user, this.opt.start);
+			const opts = this.opt;
+			const revOpts = new GetRevisionsOptions(opts.user, opts.start, opts.end);
 			await this.getRevisions(revOpts);
 		}
 		await this.revert();
