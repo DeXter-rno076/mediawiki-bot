@@ -8,7 +8,10 @@ export {
  	BadTokenError,
 	PageDoesNotExistError,
 	CantGetTokenError,
-	ProtectedPageError
+	ProtectedPageError,
+	SectionNotFoundError,
+	NoRevIdError,
+	UndoFailureError
 } from "./errors";
 
-export { Section, CatMember } from "./global-types";
+export { Section, CatMember, tokenType, catMemberType } from "./global-types";
