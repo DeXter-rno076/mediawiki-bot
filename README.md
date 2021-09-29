@@ -331,7 +331,7 @@ async function main () {
 
 		content = content.replace(/old text/g, 'new text');
 
-		bot.edit(title, content, 'bot example');
+		bot.edit(page, content, 'bot example');
 	}
 }
 ```
