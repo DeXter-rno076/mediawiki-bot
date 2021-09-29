@@ -1,7 +1,9 @@
+- [changes in v1.1](#changes-in-v11)
 - [How to use](#how-to-use)
 	- [General info](#general-info)
 		- [Concerning waiting for server responses](#concerning-waiting-for-server-responses)
 		- [Custom errors](#custom-errors)
+		- [logs](#logs)
 		- [What can be imported](#what-can-be-imported)
 	- [Hello World](#hello-world)
 	- [constructor](#constructor)
@@ -16,17 +18,32 @@
 	- [Data actions](#data-actions)
 		- [getting contents of a page](#getting-contents-of-a-page)
 		- [getting category members](#getting-category-members)
+			- [CatMember class](#catmember-class)
 		- [getting template data](#getting-template-data)
 			- [Template class](#template-class)
 			- [Parameter class](#parameter-class)
 		- [getting sections of a page](#getting-sections-of-a-page)
+		- [getting tokens](#getting-tokens)
+	- [get and post](#get-and-post)
 	- [Examples](#examples)
+
+# changes in v1.1
+* added manual [get and post](#get-and-post) methods
+* added [getToken](#getting-tokens) method
+* added `end` param to [revert](#revert)
+* improved `type` / `ns` parameter handling in [getCatMembers](#getting-category-members) (including switching places of `type` and `ns`)
+* added `reLogin` parameter to bot [constructor](#constructor)
+* added `cutServerResponse` param to [upload](#upload) (the default status message of uploads is very long because the entire file page content is included; this info is cut out per default now)
+* changed return values from [editing bot actions](#editing-actions) (instead of an empty string, they now return the status message; this allows problem handling directly in the program)
+* changed bot action status message handling when `noLogs` is set to true (previously even console logs were blocked, now only the text logs are blocked)
+* reworked logs directory structure to separate logs from different urls
+* fixed bug in [getTemplates](#getting-template-data) that caused crashes when the template parsetree of the selected page was too big
 
 # How to use
 ## General info
 Your bot account **must** have bot rights. Otherwise most actions won't work.
 
-Every bot action that interacts with your wiki returns a promise. Therefore you can structure your code with promise syntax (.then(), .catch()) or with async-await. In the examples I'll always use async-await.
+Every bot action that interacts with your wiki returns a promise. Therefore you can structure your code with promise syntax (`.then()`, `.catch()`) or with async-await. In the examples I'll always use async-await.
 
 ### Concerning waiting for server responses
 It's always a good idea to at least wait for one server response per page you're doing something with (e. g. waiting for the page content). It is possible to make a program completely asynchronus but most wiki servers don't like it, which will cause problems resulting in some or a lot of requests don't getting through.
@@ -35,7 +52,10 @@ The bot has some built-in functions to reduce problems with for example badtoken
 In general I strongly recommend to wait for every single request except of edit requests that are at the end of your loop (if you're editing a set of pages).
 
 ### Custom errors
-Some actions can throw custom errors themselves (they are listed in the corresponding section of this file) and the error CantGetTokenError can happen for every editing action and login (because it happens in getting the token needed for the action). You can of course catch them but as long as you don't send too many requests at once to your wiki, you shouldn't need to.
+Some actions can throw custom errors themselves (they are listed in the corresponding section of this file) and the error `CantGetTokenError` can happen for every editing action and login (because it happens in getting the token needed for the action). You can of course catch them but as long as you don't send too many requests at once to your wiki, you shouldn't need to.
+
+### logs
+Per default the bot automatically creates a directory "logs" where every editing action gets logged. This helps to find potential problems that occured when editing, without having to keep the terminal open. Each URL gets an own sub directory. This is especially relevant for [reverting](#revert) edits of the bot. To remove logs that are empty or contain only the login, you can use [cleanUpLogFiles](#cleanUpLogFiles).
 
 ### What can be imported
 * Bot
@@ -47,13 +67,19 @@ Classes/Interfaces that occur in return values:
 * Section
 * CatMember
 
+Types:
+* tokenType
+* catMemberType
+
 Custom errors:
-* UnsolvableErrorError
-* BadTokenError
-* PageDoesNotExistError
-* CantGetTokenError
-* SectionNotFoundError
-* ProtectedPageError
+* UnsolvableErrorError,
+* BadTokenError,
+* PageDoesNotExistError,
+* CantGetTokenError,
+* ProtectedPageError,
+* SectionNotFoundError,
+* NoRevIdError,
+* UndoFailureError
 
 ## Hello World
 ```ts
@@ -73,10 +99,11 @@ async function main () {
 
 ## constructor
 Parameters:
-* bot name
-* bot password
-* api entrypoint url of your wiki
-* noLogs (optional; whether all editing actions shall get logged in a folder, relevant for revert; default: false)
+* bot name: `string`
+* bot password: `string`
+* url: `string` (api entrypoint url of your wiki; also relevant for [logs](#logs))
+* noLogs: `boolean` (optional; whether all editing actions shall get logged in a folder, relevant for [revert](#revert); default: `false`)
+* reLogin: `boolean` (optional; whether to automatically relogin when the bot gets logged out while editing; default: `true`)
 
 If you're not sure what the api entrypoint of your wiki looks like, you can look it up on Special:Version.
 
@@ -95,19 +122,23 @@ logger.saveMsg('test log');
 
 ## cleanUpLogFiles
 By using
-```
+```ts
 bot.cleanUpLogfiles();
 ```
 you can remove every logfile that is completely empty or has only one action (should be in all cases the login) logged.
 
 ## Editing actions
 ### edit
+Method: edit
+
 Parameters:
-* page name: string
-* new page text: string
-* edit summary: string
-* nocreate: boolean (optional; if set to true an error occurs when the page does not exist; default: true)
-* section name/index: string | number (optional)
+* page name: `string` | `CatMember`
+* new page text: `string`
+* edit summary: `string`
+* nocreate: `boolean` (optional; if set to true an error occurs when the page does not exist; default: `true`)
+* section name/index: `string` | `number` (optional)
+
+Return value: string status message
 
 Possible errors:
 * BadTokenError
@@ -117,36 +148,52 @@ Possible errors:
 * UnsolvableErrorError
 
 ### move
+Method: move
+
 Parameters:
-* from: string
-* to: string
-* summary: string
-* moveTalk: boolean (optional; default: true)
-* moveSubpages: boolean (optional; default: true)
-* noredirect: boolean (optional; default: true)
+* from: `string` | `CatMember`
+* to: `string` | `CatMember`
+* summary: `string`
+* moveTalk: `boolean` (optional; default: `true`)
+* moveSubpages: `boolean` (optional; default: `true`)
+* noredirect: `boolean` (optional; default: `true`)
+
+Return value: string status msg
 
 ### revert
-Parameters:
-* user: string
-* start: Date (if user is set to 'self', this param isn't needed)
+Method: revert
 
-If user is set to 'self', this will revert the last set of bot edits. Only possible with a bot task that got logged (i. e. noLogs wasn't set to true in the Bot constructor). **I only recommend to use this directly after a logged bot task if something went wrong.** The bot only selects the starting time of the last task. Therefore not logged bot edits since the last logged set will get reverted as well!!
+Parameters:
+* user: `string` (if set to `'self'` start and end aren't needed)
+* start: `Date` (optional) older timestamp (start of the time span, included)
+* end: `Date` (optional) newer timestamp (end of the time span, not included)
+
+If user is set to `'self'`, this will revert the last set of bot edits that were sent to Bot.url (i. e. when Bot.url is x, recent edits to url y will be ignored, because the logs for different urls are separeted from each other). Only possible with a bot task that got logged (i. e. noLogs wasn't set to true in the Bot constructor). **I only recommend to use this directly after a logged bot task if something went wrong.** The bot only selects the starting time of the last task. Therefore not logged bot edits since the last logged set will get reverted as well!!
 
 You can revert bot edits free of the logs by just setting user to your bot's name.
 
+Return value: `undefined`
+
 ### upload
+Method: upload
+
 Parameters:
-* uploadType: 'remote' | 'local' (has to be 'remote', implementation of local file upload is planned but I have no idea when it will happen)
-* wantedName: string ('File:' at the beginning is NOT needed)
-* comment: string (upload comment that is also the initial content of the file page)
-* url: string
-* ignoreWarnings: boolean (optional; default: false)
+* uploadType: `'remote'` | `'local'` (has to be `'remote'`, implementation of local file upload is planned but I have no idea when it will happen)
+* wantedName: `string` ('File:' at the beginning is NOT needed)
+* comment: `string` (upload comment that is also the initial content of the file page)
+* url: `string`
+* ignoreWarnings: `boolean` (optional; default: `false`)
+* cutServerResponse: `boolean` (optional; default: `true`; whether to remove file page content info of server response)
+
+Return value: string status msg
 
 ## Data actions
 ### getting contents of a page
+Method: getWikitext
+
 Parameters:
-* page name: string
-* section name/index: string | number (optional)
+* page name: `string` | `CatMember`
+* section name/index: `string` | `number` (optional)
 
 Return value: Page content in plain text.
 
@@ -156,24 +203,35 @@ Possible errors:
 * UnsolvableErrorError
 
 ### getting category members
-Parameters:
-* category name: string
-* namespaces: namespace[] (optional; array of namespaces that shall exclusevely be included in the resulting array)
-* type: 'file' | 'page' | 'subcat' (optional; what kind of members will be returned; default: 'page')
+Method: getCatMembers
 
-Return value: array of CatMember objects. These are built up like this:
-```ts
-{
-	ns: number,
-	title: string
-}
-```
-Namespace numbers can be found [here](https://www.mediawiki.org/wiki/Manual:Namespace#Built-in_namespaces).
+Parameters:
+* category name: `string`
+* type: `catMemberType` (i. e. `'file'` | `'page'` | `'subcat'`) (optional; what kind of members will be returned; default: `'page'`)
+* namespaces: `namespace[]` (optional; array of namespaces (text names or numbers) that shall exclusevely be included in the resulting array)
+
+Per default only Main namespace pages get included.
+
+When using both `type` and `namespaces` the namespace exclusion is used on the already reduced list of pages.
+
+Return value: array of `CatMember` objects.
+
+#### CatMember class
+Attributes:
+* ns: `number` (number of the namespace the page belongs to)
+* title: `string` (page name)
+
+Methods:
+* toString() (returns title)
+
+Namespace names and numbers can be found [here](https://www.mediawiki.org/wiki/Manual:Namespace#Built-in_namespaces).
 
 ### getting template data
+Method: getTemplates
+
 Parameters:
-* page name: string
-* section name/index: string | number (optional)
+* page name: `string` | `CatMember`
+* section name/index: `string` | `number` (optional)
 
 Return value: Array of template objects.
 
@@ -182,31 +240,33 @@ Possible errors:
 
 #### Template class
 Attributes:
-* title: string
-* index: number (marks position, further information at attribute text of Parameter class)
-* params: Parameter[]
+* title: `string`
+* index: `number` (marks position, further information at attribute text of Parameter class)
+* params: `Parameter[]`
   
 Methods:
-* getParam(title: string) (for indexed parameters you can just use their number; keep in mind: param indices start at 1)
-* toWikitext(removeWhitespace: boolean)
-* toString(): calls toWikitext(false)
+* getParam(title: `string`): `Parameter` | `null` (for indexed parameters you can just use their number; keep in mind: param indices start at 1)
+* toWikitext(removeWhitespace: `boolean`): `string`
+* toString(): calls toWikitext(`false`)
 
 #### Parameter class
 Attributes:
-* title: string
-* indexed: boolean (true for params like in `{{test|first param value}}`)
-* text: string (every template inside this param has a placeholder in the text attribute `##TEMPLATE:index##` that marks its position (needed for toWikitext))
-* templates: Template[]
+* title: `string`
+* indexed: `boolean` (true for params like in `{{test|first param value}}`)
+* text: `string` (every template inside this param has a placeholder in the text attribute `##TEMPLATE:index##` that marks its position (needed for `toWikitext()`))
+* templates: `Template[]`
 
 Methods:
-* toWikitext(removeWhitespace: boolean)
-* toString(): calls toWikitext(false)
+* toWikitext(removeWhitespace: `boolean`): `string`
+* toString(): calls toWikitext(`false`)
 
 ### getting sections of a page
-Parameters:
-* page name: string
+Method: getSections
 
-Return value: Array of section objects:
+Parameters:
+* page name: `string`
+
+Return value: Array of Section objects:
 ```ts
 {
 	toclevel: number,
@@ -221,7 +281,36 @@ Return value: Array of section objects:
 ```
 Possible errors:
 * SectionNotFoundError
-  
+
+### getting tokens
+Method: getToken
+
+Parameters:
+* type: `tokenType` (i. e. `'csrf'` | `'login'` | ... ; [full list](https://www.mediawiki.org/w/api.php?action=help&modules=query%2Btokens))
+
+Return value: Token as a string
+
+## get and post
+Method: get / post
+
+Parameters:
+* opt: `any` (configuration object for [request](https://github.com/request/request))
+
+Most of the time, `opt` will probably look like this (`qs` for get and `form` for post):
+```ts
+{
+	url: string,
+	qs / form: {
+		//post body / querystring parameters
+		action: string,
+		//...
+		format = 'json'
+	}
+}
+```
+
+Return value: Promise\<string\>
+
 ## Examples
 Let's replace some text with other text on all pages in a category.
 ```ts
