@@ -1,6 +1,7 @@
 import { Bot } from './Bot';
 import * as fs from 'fs';
 import LogEntry from './LogEntry';
+import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
 
 interface MainlogEntry {
 	id: number;
@@ -8,22 +9,17 @@ interface MainlogEntry {
 }
 
 export class Logger {
-	DIR_PATH: string;
-	URL_LIST_PATH: string;
 	URL_INDEX = -1;
 	URL_DIR_PATH = '';
 	MAINLOG_PATH = '';
 	LOG_FILE_PATH = '';
 
-	constructor () {
-		this.DIR_PATH = './logs';
-		this.URL_LIST_PATH = this.DIR_PATH + '/urlList.json';
-	}
+	constructor () {}
 
 	initDirStructure () {
 		try {
 			//accesSync throws an error if it cant reach the targeted path
-			fs.accessSync(this.DIR_PATH, fs.constants.F_OK);
+			fs.accessSync(LOG_DIR, fs.constants.F_OK);
 			this.setUrlDirPaths();
 
 			try {
@@ -55,7 +51,7 @@ export class Logger {
 
 	setUrlDirPaths () {
 		this.URL_INDEX = this.getUrlIndex();
-		this.URL_DIR_PATH = this.DIR_PATH + '/' + this.URL_INDEX;
+		this.URL_DIR_PATH = LOG_DIR + '/' + this.URL_INDEX;
 		this.MAINLOG_PATH = this.URL_DIR_PATH + '/mainlog.json';
 	}
 
@@ -72,16 +68,16 @@ export class Logger {
 	//=====================================================
 
 	createLogDirectory () {
-		fs.mkdirSync(this.DIR_PATH);
-		fs.writeFileSync(this.URL_LIST_PATH, '{}');
+		fs.mkdirSync(LOG_DIR);
+		fs.writeFileSync(LOG_URL_LIST_PATH, '{}');
 	}
 
 	createUrlDirectory () {
 		fs.mkdirSync(this.URL_DIR_PATH);
 
-		const urlList = JSON.parse(fs.readFileSync(this.URL_LIST_PATH, {encoding: 'utf-8'}));
+		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
 		urlList[Bot.url] = this.URL_INDEX;
-		fs.writeFileSync(this.URL_LIST_PATH, JSON.stringify(urlList));
+		fs.writeFileSync(LOG_URL_LIST_PATH, JSON.stringify(urlList));
 
 		fs.writeFileSync(this.MAINLOG_PATH, '[]');
 
@@ -113,7 +109,7 @@ export class Logger {
 	//=====================================================
 
 	getUrlIndex (): number {
-		const urlList = JSON.parse(fs.readFileSync(this.URL_LIST_PATH, {encoding: 'utf-8'}));
+		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
 		const urlIndex = urlList[Bot.url] as number | undefined;
 
 		if (urlIndex === undefined) {

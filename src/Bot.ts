@@ -24,6 +24,7 @@ import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 import RequestHandler from './RequestHandler';
 import { UnsolvableErrorError } from './errors';
+import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
 
 export class Bot {
 	static username: string;
@@ -249,7 +250,7 @@ export class Bot {
 
 	//removes log files that only have the login logged
 	cleanUpLogfiles () {
-		const urlListPath = Bot.logger.URL_LIST_PATH;
+		const urlListPath = LOG_URL_LIST_PATH;
 		const urlList = JSON.parse(fs.readFileSync(urlListPath, {encoding: 'utf-8'}));
 		for (let url in urlList) {
 			this.cleanUpLogDir(urlList[url]);
@@ -257,7 +258,7 @@ export class Bot {
 	}
 
 	cleanUpLogDir (dir: string) {
-		const mainlogFilePath = `${Bot.logger.DIR_PATH}/${dir}/mainlog.json`;
+		const mainlogFilePath = `${LOG_DIR}/${dir}/mainlog.json`;
 		const mainlog = JSON.parse(fs.readFileSync(mainlogFilePath, {encoding: 'utf8'}));
 		if (mainlog.length === 0) {
 			return;
@@ -265,7 +266,7 @@ export class Bot {
 
 		for (let i = 0; i < mainlog.length; i++) {
 			const taskId = mainlog[i].id;
-			const taskFilePath = `${Bot.logger.DIR_PATH}/${dir}/${taskId}.txt`;
+			const taskFilePath = `${LOG_DIR}/${dir}/${taskId}.txt`;
 			const logFile = fs.readFileSync(taskFilePath, {encoding: 'utf8'});
 
 			if (logFile.split('\n').length <= 2) {

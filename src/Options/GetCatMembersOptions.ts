@@ -1,24 +1,6 @@
 import { Options } from './Options';
 import { namespace, catMemberType } from '../global-types';
-
-const namespaces = {
-	'Main': 0,
-	'Talk': 1,
-	'User': 2,
-	'User talk': 3,
-	'Project': 4,
-	'Project talk': 5,
-	'File': 6,
-	'File talk': 7,
-	'MediaWiki': 8,
-	'MediaWiki talk': 9,
-	'Template': 10,
-	'Template talk': 11,
-	'Help': 12,
-	'Help talk': 13,
-	'Category': 14,
-	'Category talk': 15
-};
+import { NAMESPACES } from '../constants';
 
 export class GetCatMembersOptions extends Options {
 	cmtitle: string;
@@ -45,7 +27,7 @@ export class GetCatMembersOptions extends Options {
 	setNamespaces (ns: namespace[]) {
 		let nsIdentifier = ns[0];
 		if (isNaN(Number(ns[0]))) {
-			nsIdentifier = namespaces[ns[0]];
+			nsIdentifier = NAMESPACES[ns[0]];
 		}
 
 		this.cmnamespace = String(nsIdentifier);
@@ -53,7 +35,7 @@ export class GetCatMembersOptions extends Options {
 		for (let i = 1; i < ns.length; i++) {
 			let nsIdentifier = ns[i];
 			if (isNaN(Number(ns[i]))) {
-				nsIdentifier = namespaces[ns[i]];
+				nsIdentifier = NAMESPACES[ns[i]];
 			}
 			this.cmnamespace += '|' + nsIdentifier;
 		}
