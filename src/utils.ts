@@ -1,4 +1,4 @@
-import { NAMESPACES } from "./constants";
+import { NAMESPACES, PAGE_TYPES } from "./constants";
 import { namespace, pageType } from "./global-types";
 
 export function isNum ( x: any ): boolean {
@@ -18,6 +18,10 @@ export function isNamespace (x: any): boolean {
         return false;
     }
     return NAMESPACES[x] !== undefined;
+}
+
+export function isPageType (x: any): boolean {
+    return PAGE_TYPES.includes(x);
 }
 
 export function pageTypeToNS (pageType: pageType): namespace | null {

@@ -1,3 +1,5 @@
+import { pageType } from "./global-types";
+
 export const NAMESPACES = {
 	'Main': 0,
 	'Talk': 1,
@@ -16,6 +18,10 @@ export const NAMESPACES = {
 	'Category': 14,
 	'Category talk': 15
 };
+
+export const PAGE_TYPES: pageType[] = [
+    'file', 'subcat', 'page', 'template'
+];
 
 /**
  * ===============================================================================

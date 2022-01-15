@@ -3,7 +3,7 @@ export { Logger } from "./Logger";
 
 export { Template, Parameter } from "./BotActions/GetTemplates";
 
-export { Section, Page, tokenType, catMemberType } from "./global-types";
+export { Section, Page, tokenType, pageType } from "./global-types";
 
 // exceptions =================================================================================
 export { BadTokenException } from './exceptions/BadTokenException';

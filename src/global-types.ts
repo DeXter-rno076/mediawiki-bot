@@ -16,8 +16,11 @@ export type actionReturnType = string | string[] | undefined
 export type namespace = number | 'Main' | 'Talk' | 'User' | 'User talk' | 'Project talk'
 	| 'File' | 'File talk' | 'MediaWiki' | 'MediaWiki talk' | 'Template' | 'Template talk'
 	| 'Help' | 'Help talk' | 'Category' | 'Category talk';
+export type pageType = 'file' | 'page' | 'subcat' | 'template';
+export type pageListFilter = (namespace | pageType)[];
 
 export type tokenType = 'csrf' | 'login' | 'createaccount' | 'patrol' | 'rollback' | 'userrights' | 'watch';
+export type categoryName = string;
 
 export interface Section {
 	toclevel: number;
@@ -50,5 +53,3 @@ export interface ErrorResponse {
 		info: string
 	}
 }
-
-export type catMemberType = 'file' | 'page' | 'subcat';

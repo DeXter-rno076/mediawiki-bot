@@ -1,51 +1,89 @@
 import { Options } from './Options';
-import { namespace, catMemberType } from '../global-types';
+import { namespace, pageListFilter, pageType } from '../global-types';
 import { NAMESPACES } from '../constants';
+import { isNum, isPageType } from '../utils';
 
 export class GetCatMembersOptions extends Options {
 	cmtitle: string;
-	cmlimit: number | 'max' = 'max';
-	cmnamespace? = '0';
-	cmtype?: catMemberType;
-	cmprop = 'title';
-	list = 'categorymembers';
-	cmcontinue: string = '';
 
-	constructor (category: string, type?: catMemberType, ns?: namespace[]) {
+	cmnamespace = '0';
+	cmcontinue: string = '';
+    readonly cmlimit = 'max';
+	readonly cmprop = 'title';
+	readonly list = 'categorymembers';
+
+	constructor (category: string, types?: pageType | pageListFilter) {
 		super('query');
 		this.cmtitle = category;
-		if (type !== undefined) {
-			delete this.cmnamespace;
-			this.cmtype = type;
-		}
 
-		if (ns !== undefined) {
-			this.setNamespaces(ns);
+        if (types !== undefined) {
+            if (Array.isArray(types)) {
+                this.setNamespaces(types as pageListFilter);
+            } else {
+                const nsNumber = this.pageTypeToNS(types);
+                if (nsNumber === null) {
+                    console.error('GetCatMembersOptions: page type ' + types + ' has invalid value');
+                } else {
+                    this.cmnamespace = String(nsNumber);
+                }
+            }
+        }
+	}
+
+    private pageTypeToNS (type: pageType): number | null {
+        switch (type) {
+            case 'file':
+                return NAMESPACES['File'];
+            case 'page':
+                return NAMESPACES['Main'];
+            case 'subcat':
+                return NAMESPACES['Category'];
+            case 'template':
+                return NAMESPACES['Template'];
+            default:
+                return null;
+        }
+    }
+
+	private setNamespaces (types: pageListFilter) {
+        if (types.length === 0) {
+            return;
+        }
+        this.cmnamespace = '';
+
+        //to prevent a | prefix (unwanted and would create a mediawiki warning)
+        const firstNSNumber = this.nsIdentifierToNSNumber(types[0]);
+        if (firstNSNumber !== null) {
+            this.cmnamespace = String(firstNSNumber);
+        }
+
+		for (let i = 1; i < types.length; i++) {
+			const nsIdentifier = types[i];
+            const nsNumber = this.nsIdentifierToNSNumber(nsIdentifier);
+            if (nsNumber === null) {
+                continue;
+            }
+
+			this.cmnamespace += '|' + nsNumber;
 		}
 	}
 
-	setNamespaces (ns: namespace[]) {
-		let nsIdentifier = ns[0];
-		if (isNaN(Number(ns[0]))) {
-			nsIdentifier = NAMESPACES[ns[0]];
-		}
+    private nsIdentifierToNSNumber (nsIdentifier: pageType | namespace): number | null {
+        if (isPageType(nsIdentifier)) {
+            const nsValue = this.pageTypeToNS(nsIdentifier as pageType);
+            if (nsValue === null) {
+                console.error('setNamespaces: page type ' + nsIdentifier + ' has invalid value');
+                return null;
+            }
+            return nsValue;
+        }
+        if (!isNum(nsIdentifier)) {
+            return NAMESPACES[nsIdentifier];
+        }
+        return nsIdentifier as number;
+    }
 
-		this.cmnamespace = String(nsIdentifier);
-		
-		for (let i = 1; i < ns.length; i++) {
-			let nsIdentifier = ns[i];
-			if (isNaN(Number(ns[i]))) {
-				nsIdentifier = NAMESPACES[ns[i]];
-			}
-			this.cmnamespace += '|' + nsIdentifier;
-		}
-	}
-
-	setLimit (limit: number | 'max') {
-		this.cmlimit = limit;
-	}
-
-	setContinue (key: string) {
+	public setContinue (key: string) {
 		this.cmcontinue = key;
 	}
 }
