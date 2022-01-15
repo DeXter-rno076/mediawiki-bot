@@ -6,7 +6,11 @@ import { EditOptions } from '../Options/EditOptions';
 import { GetSectionsOptions } from '../Options/GetSectionsOptions';
 import GetSections from '../BotActions/GetSections';
 import { ErrorResponse } from '../global-types';
-import { BadTokenError, PageDoesNotExistError, UnsolvableErrorError, ProtectedPageError } from '../errors';
+
+import { BadTokenException } from '..';
+import { PageDoesNotExistException } from '..';
+import { UnsolvableProblemException } from '..';
+import { ProtectedPageException } from '..';
 
 export default class Edit extends BotAction {
 	opt: EditOptions;
@@ -51,12 +55,12 @@ export default class Edit extends BotAction {
 						return res;
 					}
 				}
-				throw new BadTokenError();
+				throw new BadTokenException();
 			case 'missingtitle':
-				throw new PageDoesNotExistError(this.opt.title, 'edit');
+				throw new PageDoesNotExistException(this.opt.title, 'edit');
 			case 'protectedpage':
-				throw new ProtectedPageError(this.opt.title);
+				throw new ProtectedPageException(this.opt.title);
 		}
-		throw new UnsolvableErrorError(eCode);
+		throw new UnsolvableProblemException(eCode);
 	}
 }

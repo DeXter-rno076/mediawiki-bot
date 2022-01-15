@@ -2,7 +2,8 @@ import BotAction from "./BotAction";
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
 import { GetTokenOptions } from '../Options/GetTokenOptions';
-import { CantGetTokenError } from "../errors";
+
+import { CantGetTokenException } from "..";
 
 export default class GetToken extends BotAction {
 	readonly MAX_RETRYS = 5;
@@ -38,6 +39,6 @@ export default class GetToken extends BotAction {
 				console.error('error in getting token. Retry ' + i);
 			}
 		}
-		throw new CantGetTokenError();
+		throw new CantGetTokenException();
 	}
 }

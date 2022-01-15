@@ -3,7 +3,8 @@ import BotAction from "./BotAction";
 import RequestHandler from "../RequestHandler";
 import BotActionReturn from '../BotActionReturn';
 import { Section } from "../global-types";
-import { SectionNotFoundError } from "../errors";
+
+import { SectionNotFoundException } from "..";
 
 /**
  * results have the form of
@@ -41,6 +42,6 @@ export default class GetSections extends BotAction {
 				return Number(section.index);
 			}
 		}
-		throw new SectionNotFoundError(sectionName, this.opt.page);
+		throw new SectionNotFoundException(sectionName, this.opt.page);
 	}
 }

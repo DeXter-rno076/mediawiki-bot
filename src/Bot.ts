@@ -23,8 +23,9 @@ import GetSections from './BotActions/GetSections';
 import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 import RequestHandler from './RequestHandler';
-import { UnsolvableErrorError } from './errors';
 import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
+
+import { UnsolvableProblemException } from './exceptions/UnsolvableProblemException';
 
 export class Bot {
 	static username: string;
@@ -157,14 +158,14 @@ export class Bot {
 		category: string,
 		type?: catMemberType,
 		ns?: namespace[]
-	): Promise<CatMember[]> {
+	): Promise<Page[]> {
 		if (type !== undefined && typeof type !== 'string') {
 			throw 'argument "type" must be a string. Places of params "type" and ns got switched, maybe thats the problem.';
 		}
 
 		const getCatMembersOpts = new GetCatMembersOptions(category, type, ns);
 		const getCatMembers = new GetCatMembers(getCatMembersOpts);
-		return this.action(getCatMembers) as Promise<CatMember[]>;
+		return this.action(getCatMembers) as Promise<Page[]>;
 	}
 
 	/**
@@ -288,7 +289,7 @@ export class Bot {
 				throw e;
 			}
 
-			if (e instanceof UnsolvableErrorError && e.eType === 'assertbotfailed') {
+			if (e instanceof UnsolvableProblemException && e.eType === 'assertbotfailed') {
 				console.log('bot got logged out, logging in and trying again');
 				await this.login();
 				result = await task.exc();

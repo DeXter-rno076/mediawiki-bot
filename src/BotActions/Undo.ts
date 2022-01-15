@@ -4,7 +4,11 @@ import { UndoOptions } from "../Options/UndoOptions";
 import RequestHandler from "../RequestHandler";
 import BotAction from "./BotAction";
 import { ErrorResponse } from "../global-types";
-import { BadTokenError, UnsolvableErrorError, NoRevIdError, UndoFailureError } from "../errors";
+
+import { BadTokenException } from '..';
+import { UnsolvableProblemException } from '..';
+import { NoRevIdException } from "..";
+import { UndoFailureException } from "..";
 
 export default class Undo extends BotAction {
 	readonly MAX_RETRYS = 5;
@@ -38,12 +42,12 @@ export default class Undo extends BotAction {
 						return res;
 					}
 				}
-				throw new BadTokenError();
+				throw new BadTokenException();
 			case 'nosuchrevid':
-				throw new NoRevIdError(parsedRes.error.info, this.opt.title);
+				throw new NoRevIdException(parsedRes.error.info, this.opt.title);
 			case 'undofailure':
-				throw new UndoFailureError(this.opt.title);
+				throw new UndoFailureException(this.opt.title);
 		}
-		throw new UnsolvableErrorError(eCode);
+		throw new UnsolvableProblemException(eCode);
 	}
 }

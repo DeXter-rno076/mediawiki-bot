@@ -5,7 +5,9 @@ import BotActionReturn from "../BotActionReturn";
 import GetSections from "./GetSections";
 import { GetSectionsOptions } from "../Options/GetSectionsOptions";
 import { ErrorResponse } from "../global-types";
-import { PageDoesNotExistError, UnsolvableErrorError } from "../errors";
+
+import { PageDoesNotExistException } from "..";
+import { UnsolvableProblemException } from "..";
 
 export default class GetWikitext extends BotAction {
 	opt: GetWikitextOptions;
@@ -46,8 +48,8 @@ export default class GetWikitext extends BotAction {
 	async handleError (res: ErrorResponse): Promise<string> {
 		const eCode = res.error.code;
 		if (eCode === 'missingtitle') {
-			throw new PageDoesNotExistError(this.opt.page, 'getWikitext');
+			throw new PageDoesNotExistException(this.opt.page, 'getWikitext');
 		}
-		throw new UnsolvableErrorError(eCode);
+		throw new UnsolvableProblemException(eCode);
 	}
 }
