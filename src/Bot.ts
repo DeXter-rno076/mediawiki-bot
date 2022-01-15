@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Logger } from './Logger';
-import { actionReturnType, Page, namespace, Section, catMemberType, tokenType } from './global-types';
+import { actionReturnType, Page, Section, tokenType, pageType, pageListFilter } from './global-types';
 import BotAction from './BotActions/BotAction';
 import { LoginOptions } from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -23,9 +23,8 @@ import GetSections from './BotActions/GetSections';
 import { GetTokenOptions } from './Options/GetTokenOptions';
 import GetToken from './BotActions/GetToken';
 import RequestHandler from './RequestHandler';
-import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
-
 import { UnsolvableProblemException } from './exceptions/UnsolvableProblemException';
+import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
 
 export class Bot {
 	static username: string;
@@ -156,14 +155,9 @@ export class Bot {
 	 */
 	getCatMembers (
 		category: string,
-		type?: catMemberType,
-		ns?: namespace[]
+        types?: pageType | pageListFilter
 	): Promise<Page[]> {
-		if (type !== undefined && typeof type !== 'string') {
-			throw 'argument "type" must be a string. Places of params "type" and ns got switched, maybe thats the problem.';
-		}
-
-		const getCatMembersOpts = new GetCatMembersOptions(category, type, ns);
+		const getCatMembersOpts = new GetCatMembersOptions(category, types);
 		const getCatMembers = new GetCatMembers(getCatMembersOpts);
 		return this.action(getCatMembers) as Promise<Page[]>;
 	}
