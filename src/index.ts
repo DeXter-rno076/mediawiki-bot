@@ -14,4 +14,4 @@ export {
 	UndoFailureError
 } from "./errors";
 
-export { Section, CatMember, tokenType, catMemberType } from "./global-types";
+export { Section, Page, tokenType, catMemberType } from "./global-types";

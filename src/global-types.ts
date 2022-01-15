@@ -9,7 +9,7 @@ export type mwActionType = editAction | mwDataAction;
 export type logActionType = editAction | dataAction;
 
 export type actionReturnType = string | string[] | undefined 
-	| Section | Section[] | CatMember | CatMember[] | Template | Template[];
+	| Section | Section[] | Page | Page[] | Template | Template[];
 
 //export type pageIdentifier = string | number;
 
@@ -30,7 +30,7 @@ export interface Section {
 	anchor: string;
 }
 
-export class CatMember {
+export class Page {
 	ns: number;
 	title: string;
 

@@ -2,11 +2,11 @@ import BotAction from "./BotAction";
 import { GetCatMembersOptions } from "../Options/GetCatMembersOptions";
 import BotActionReturn from "../BotActionReturn";
 import RequestHandler from "../RequestHandler";
-import { CatMember } from "../global-types";
+import { Page } from "../global-types";
 
 export default class GetCatMembers extends BotAction {
 	opt: GetCatMembersOptions;
-	catMembers: CatMember[] = [];
+	catMembers: Page[] = [];
 
 	constructor (opt: GetCatMembersOptions) {
 		super();
@@ -40,7 +40,7 @@ export default class GetCatMembers extends BotAction {
 
 	addCatMembers (catMembersPart) {
 		for (let obj of catMembersPart) {
-			const catMember = new CatMember(obj.ns, obj.title);
+			const catMember = new Page(obj.ns, obj.title);
 			this.catMembers.push(catMember);
 		}
 	}

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Logger } from './Logger';
-import { actionReturnType, CatMember, namespace, Section, catMemberType, tokenType } from './global-types';
+import { actionReturnType, Page, namespace, Section, catMemberType, tokenType } from './global-types';
 import BotAction from './BotActions/BotAction';
 import { LoginOptions } from './Options/LoginOptions';
 import Login from './BotActions/Login';
@@ -69,7 +69,7 @@ export class Bot {
 	 * 
 	 * @throws BadTokenError, PageDoesNotExistError, ProtectedPageError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	edit (title: string | CatMember, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
+	edit (title: string | Page, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
 		const eOpts = new EditOptions(String(title), text, summary, section);
 		if (nocreate !== undefined) {
 			eOpts.setNoCreate(nocreate);
@@ -89,8 +89,8 @@ export class Bot {
 	 * @returns Promise<''>
 	*/
 	move (
-		from: string | CatMember,
-		to: string | CatMember,
+		from: string | Page,
+		to: string | Page,
 		summary: string,
 		moveTalk = true,
 		moveSubpgabes = true,
@@ -175,7 +175,7 @@ export class Bot {
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getTemplates (title: string | CatMember, section?: string | number): Promise<Template[]> {
+	getTemplates (title: string | Page, section?: string | number): Promise<Template[]> {
 		const getTemplatesOpts = new GetTemplatesOptions(String(title), section);
 		const getTemplates = new GetTemplates(getTemplatesOpts);
 		return this.action(getTemplates) as Promise<Template[]>;
@@ -189,7 +189,7 @@ export class Bot {
 	 * 
 	 * @throws PageDoesNotExistError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	getWikitext (page: string | CatMember, section?: string | number): Promise<string> {
+	getWikitext (page: string | Page, section?: string | number): Promise<string> {
 		const getWikitextOpts = new GetWikitextOptions(String(page), section);
 		const getWikitext = new GetWikitext(getWikitextOpts);
 		return this.action(getWikitext) as Promise<string>;
@@ -202,7 +202,7 @@ export class Bot {
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getSections (page: string | CatMember): Promise<Section[]> {
+	getSections (page: string | Page): Promise<Section[]> {
 		const getSectionsOpts = new GetSectionsOptions(String(page));
 		const getSections = new GetSections(getSectionsOpts);
 		return this.action(getSections) as Promise<Section[]>;
