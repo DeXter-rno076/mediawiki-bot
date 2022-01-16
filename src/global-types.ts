@@ -1,4 +1,4 @@
-import { Template } from './BotActions/GetTemplates';
+import { Template } from './actions/GetTemplates/GetTemplates';
 
 type editAction = 'edit' | 'move' | 'revert' | 'upload' | 'clientlogin';
 type dataAction = 'getCatMembers' | 'getTemplates' | 'getToken' | 'getWikitext' | 'getSections' | 'getRevisions';

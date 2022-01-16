@@ -1,9 +1,9 @@
 import { Bot } from './Bot';
-import { Options } from './Options/Options';
+import { Options } from './actions/Options';
 import * as req from 'request';
 import { mwActionType } from './global-types';
-import { GetTokenOptions } from './Options/GetTokenOptions';
-import GetToken from './BotActions/GetToken';
+import { GetTokenOptions } from './actions/GetToken/GetTokenOptions';
+import GetToken from './actions/GetToken/GetToken';
 //todo feels unclean
 const request = req.defaults({jar: true})
 
