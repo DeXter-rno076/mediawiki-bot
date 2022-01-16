@@ -1,10 +1,9 @@
-import { GetSectionsOptions } from "./GetSectionsOptions";
-import BotAction from "../BotAction";
-import RequestHandler from "../../RequestHandler";
 import BotActionReturn from '../BotActionReturn';
 import { Section } from "../../global-types";
 
-import { SectionNotFoundException } from "../..";
+import { Bot, SectionNotFoundException } from "../..";
+import { APIAction } from "../APIAction";
+import { GetSectionsQuery } from "./GetSectionsQuery";
 
 /**
  * results have the form of
@@ -20,15 +19,17 @@ import { SectionNotFoundException } from "../..";
     }
  */
 
-export default class GetSections extends BotAction {
-	opt: GetSectionsOptions;
-	constructor (opt: GetSectionsOptions) {
-		super();
-		this.opt = opt;
-	}
+export class GetSections extends APIAction {
+	page: string;
+
+    constructor (bot: Bot, page: string) {
+		super(bot);
+        this.page = page;
+    }
 
 	async exc (): Promise<BotActionReturn> {
-		const res = JSON.parse(await RequestHandler.get(this.opt));
+        const getSectionsQuery = this.createQuery();
+		const res = JSON.parse(await this.bot.getRequestSender().get(getSectionsQuery));
 		const sections = res.parse.sections as Section[];
 		return new BotActionReturn(undefined, sections);
 	}
@@ -42,6 +43,16 @@ export default class GetSections extends BotAction {
 				return Number(section.index);
 			}
 		}
-		throw new SectionNotFoundException(sectionName, this.opt.page);
+		throw new SectionNotFoundException(sectionName, this.page);
 	}
+
+    createQuery (): GetSectionsQuery {
+        const query: GetSectionsQuery = {
+            action: 'parse',
+            prop: 'sections',
+            page: this.page,
+            format: 'json'
+        };
+        return query;
+    }
 }

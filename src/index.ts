@@ -1,7 +1,8 @@
 export { Bot } from "./Bot";
 export { Logger } from "./Logger";
 
-export { Template, Parameter } from "./actions/GetTemplates/GetTemplates";
+export { Template } from "./actions/GetTemplates/Template";
+export { Parameter } from "./actions/GetTemplates/Parameter";
 
 export { Section, Page, tokenType, pageType } from "./global-types";
 

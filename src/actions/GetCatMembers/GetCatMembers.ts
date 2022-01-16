@@ -1,42 +1,54 @@
-import BotAction from "../BotAction";
-import { GetCatMembersOptions } from "./GetCatMembersOptions";
 import BotActionReturn from "../BotActionReturn";
-import RequestHandler from "../../RequestHandler";
-import { Page } from "../../global-types";
+import { namespace, Page, pageListFilter } from "../../global-types";
+import { APIAction } from "../APIAction";
+import { Bot, pageType } from "../..";
+import { NAMESPACES } from "../../constants";
+import { isNum, isPageType, pageTypeToNS } from "../../utils";
+import { GetCatMembersQuery } from "./GetCatMembersQuery";
 
-export default class GetCatMembers extends BotAction {
-	opt: GetCatMembersOptions;
+export class GetCatMembers extends APIAction {
+    categoryName: string;
+    namespacesList = '0';
+
 	catMembers: Page[] = [];
 
-	constructor (opt: GetCatMembersOptions) {
-		super();
-		this.opt = opt;
+    currentContinueKey = '';
+
+	constructor (bot: Bot, category: string, types?: pageType | pageListFilter) {
+		super(bot);
+        this.categoryName = category;
+        if (types !== undefined) {
+            this.setNamespacesList(types);
+        }
 	}
 
 	async exc (): Promise<BotActionReturn> {
-		let continueKey = '';
 		do {
-			continueKey = await this.getCatMembersPart(continueKey);
-		} while (continueKey !== '');
+			await this.getCatMembersPart();
+		} while (this.currentContinueKey !== '');
 
 		return new BotActionReturn(undefined, this.catMembers);
 	}
 
-	async getCatMembersPart (continueKey: string): Promise<string> {
-		this.opt.setContinue(continueKey);
+	async getCatMembersPart () {
+        const getCatMembersQuery = this.createQuery();
+        if (this.currentContinueKey !== '') {
+            getCatMembersQuery.cmcontinue = this.currentContinueKey;
+        }
 
-		const res = JSON.parse(await RequestHandler.get(this.opt));
+		const res = JSON.parse(await this.bot.getRequestSender().get(getCatMembersQuery));
 		if (res.error !== undefined && res.error.code === 'invalidcategory') {
             //todo outsource this into own exception
-			throw `invalid category name given: ${this.opt.cmtitle}. Maybe you forgot the namespace prefix?`
+			throw `invalid category name given: ${this.categoryName}. Maybe you forgot the namespace prefix?`
 		}
 
 		this.addCatMembers(res.query.categorymembers);
 
 		if (res.continue !== undefined) {
-			return res.continue.cmcontinue;
-		}
-		return '';
+			this.currentContinueKey = res.continue.cmcontinue;
+		} else {
+            this.currentContinueKey = '';
+        }
 	}
 
 	addCatMembers (catMembersPart) {
@@ -45,4 +57,68 @@ export default class GetCatMembers extends BotAction {
 			this.catMembers.push(catMember);
 		}
 	}
+
+    setNamespacesList (types: pageType | pageListFilter) {
+        if (Array.isArray(types)) {
+            this.setPageListFilterAsNamespaceList(types as pageListFilter);
+        } else {
+            const nsNumber = pageTypeToNS(types);
+            if (nsNumber === null) {
+                console.error('GetCatMembersOptions: page type ' + types + ' has invalid value');
+            } else {
+                this.namespacesList = String(nsNumber);
+            }
+        }
+    }
+
+    private setPageListFilterAsNamespaceList (types: pageListFilter) {
+        if (types.length === 0) {
+            return;
+        }
+        this.namespacesList = '';
+
+        //to prevent a | prefix (unwanted and would create a mediawiki warning)
+        const firstNSNumber = this.nsIdentifierToNSNumber(types[0]);
+        if (firstNSNumber !== null) {
+            this.namespacesList = String(firstNSNumber);
+        }
+
+		for (let i = 1; i < types.length; i++) {
+			const nsIdentifier = types[i];
+            const nsNumber = this.nsIdentifierToNSNumber(nsIdentifier);
+            if (nsNumber === null) {
+                continue;
+            }
+
+			this.namespacesList += '|' + nsNumber;
+		}
+	}
+
+    private nsIdentifierToNSNumber (nsIdentifier: pageType | namespace): number | null {
+        if (isPageType(nsIdentifier)) {
+            const nsValue = pageTypeToNS(nsIdentifier as pageType);
+            if (nsValue === null) {
+                console.error('setNamespaces: page type ' + nsIdentifier + ' has invalid value');
+                return null;
+            }
+            return nsValue;
+        }
+        if (!isNum(nsIdentifier)) {
+            return NAMESPACES[nsIdentifier];
+        }
+        return nsIdentifier as number;
+    }
+
+    createQuery (): GetCatMembersQuery {
+        const query: GetCatMembersQuery = {
+            action: 'query',
+            cmtitle: this.categoryName,
+            cmlimit: 'max',
+            cmprop: 'title',
+            list: 'categorymembers',
+            cmnamespace: this.namespacesList,
+            format: 'json'
+        }
+        return query;
+    }
 }

@@ -1,32 +1,50 @@
-import BotAction from '../BotAction';
 import BotActionReturn from '../BotActionReturn';
-import RequestHandler from '../../RequestHandler';
 import LogEntry from '../../LogEntry';
-import { EditOptions } from './EditOptions';
-import { GetSectionsOptions } from '../GetSections/GetSectionsOptions';
-import GetSections from '../GetSections/GetSections';
+import { GetSections } from '../GetSections/GetSections';
 import { ErrorResponse } from '../../global-types';
 
-import { BadTokenException } from '../..';
+import { BadTokenException, Bot } from '../..';
 import { PageDoesNotExistException } from '../..';
 import { UnsolvableProblemException } from '../..';
 import { ProtectedPageException } from '../..';
+import { APIAction } from '../APIAction';
+import { isNum } from '../../utils';
+import { EditQuery } from './EditQuery';
 
-export default class Edit extends BotAction {
-	opt: EditOptions;
+export class Edit extends APIAction {
 	readonly MAX_RETRYS = 5;
 
-	constructor (opt: EditOptions) {
-		super();
-		this.opt = opt;
+    pageTitle: string;
+    newPageText: string;
+    editSummary: string;
+    pageSection?: string | number;
+    sectionIndex?: number;
+    nocreate = true;
+
+	constructor (
+        bot: Bot,
+        title: string,
+        text: string,
+        summary: string,
+        section?: string | number,
+        nocreate?: boolean
+    ) {
+		super(bot);
+		this.pageTitle = title;
+        this.newPageText = text;
+        this.editSummary = summary;
+        if (section !== undefined) {
+            this.pageSection = section;
+        }
+        if (nocreate !== undefined) {
+            this.nocreate = nocreate;
+        }
 	}
 
 	async exc (): Promise<BotActionReturn> {
-		if (this.opt.section !== undefined && isNaN(Number(this.opt.section))) {
-			await this.setSectionIndex();
-		}
-
-		let res = await RequestHandler.post(this.opt);
+        await this.setSectionIndex();
+        const editQuery = this.createQuery();
+		let res = await this.bot.getRequestSender().post(editQuery);
 
 		const parsedResult = JSON.parse(res);
 		if (parsedResult.error !== undefined) {
@@ -37,19 +55,30 @@ export default class Edit extends BotAction {
 		return new BotActionReturn(logEntry, '');
 	}
 
-	async setSectionIndex () {
-		const getSectionsOpt = new GetSectionsOptions(this.opt.title);
-		const getSections = new GetSections(getSectionsOpt);
-		const sectionIndex = await getSections.getIndex(this.opt.section as string) as number;
-		this.opt.section = sectionIndex;
+    async setSectionIndex () {
+        if (this.pageSection === undefined) {
+            return;
+        }
+        if (isNum(this.pageSection)) {
+            this.sectionIndex = this.pageSection as number;
+            return;
+        }
+        this.sectionIndex = await this.getSectionIndex();
+    }
+
+	async getSectionIndex (): Promise<number> {
+		const getSections = new GetSections(this.bot, this.pageTitle);
+		const sectionIndex = await getSections.getIndex(this.pageSection as string) as number;
+		return sectionIndex;
 	}
 
 	async handleError (parsedRes: ErrorResponse): Promise<string> {
 		const eCode = parsedRes.error.code;
 		switch (eCode) {
 			case 'badtoken':
+                const editQuery = this.createQuery();
 				for (let i = 0; i < this.MAX_RETRYS; i++) {
-					const res = await RequestHandler.post(this.opt);
+					const res = await this.bot.getRequestSender().post(editQuery);
 					const parsedRes = JSON.parse(res);
 					if (parsedRes.error === undefined) {
 						return res;
@@ -57,10 +86,26 @@ export default class Edit extends BotAction {
 				}
 				throw new BadTokenException();
 			case 'missingtitle':
-				throw new PageDoesNotExistException(this.opt.title, 'edit');
+				throw new PageDoesNotExistException(this.pageTitle, 'edit');
 			case 'protectedpage':
-				throw new ProtectedPageException(this.opt.title);
+				throw new ProtectedPageException(this.pageTitle);
 		}
 		throw new UnsolvableProblemException(eCode);
 	}
+
+    createQuery (): EditQuery {
+        const query: EditQuery = {
+            action: 'edit',
+            title: this.pageTitle,
+            text: this.newPageText,
+            summary: this.editSummary,
+            nocreate: this.nocreate,
+            bot: true,
+            format: 'json'
+        }
+        if (this.sectionIndex !== undefined) {
+            query.section = String(this.sectionIndex);
+        }
+        return query;
+    }
 }

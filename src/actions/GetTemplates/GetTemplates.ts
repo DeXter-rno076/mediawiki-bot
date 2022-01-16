@@ -1,127 +1,41 @@
-import BotAction from "../BotAction";
-import { GetTemplatesOptions } from "./GetTemplatesOptions";
 import { XMLParser, NormalTag, Tag, TagContent } from '../../XMLParser';
-import RequestHandler from "../../RequestHandler";
 import BotActionReturn from "../BotActionReturn";
+import { APIAction } from "../APIAction";
+import { Bot } from "../..";
+import { GetWikitext } from "../GetWikitext/GetWikitext";
 
-export class Template {
-	_title: string;
-	index: number;
-	params: Parameter[] = [];
+import { Template } from './Template';
+import { Parameter } from './Parameter';
+import { GetTemplatesQuery } from './GetTemplatesQuery';
 
-	constructor (title: string, index: number) {
-		this._title = title;
-		this.index = index;
-	}
+export class GetTemplates extends APIAction {
+    pageTitle: string;
+    pageSection?: string | number;
+    pageContent?: string;
 
-	get title (): string {
-		return this._title.trim();
-	}
+    constructor (bot: Bot, title: string, section?: string | number) {
+		super(bot);
 
-	//supposed to be called by the user
-	//every parameter name should be unique (no need to optionally return arrays)
-	//for indexed params just use their number (keep in mind: PARAM INDICES START AT 1)
-	getParam (name: string): Parameter | null {
-		const param = this.params.find((item) => {
-			return item.title === name;
-		});
-		if (param === undefined) {
-			return null;
-		}
-		return param;
-	}
-
-	addParam (param: Parameter) {
-		this.params.push(param);
-	}
-
-	toWikitext (removeWhitespace: boolean) {
-        let templateCode = '{{' + this._title;
-		if (removeWhitespace) {
-			templateCode = templateCode.trim();
-		}
-
-        for (let param of this.params) {
-            templateCode += '|';
-            if (param.indexed) {
-				if (removeWhitespace) {
-					templateCode += String(param).trim();
-				} else {
-					templateCode += String(param);
-				}
-            } else {
-                if (removeWhitespace) {
-                    templateCode += param.title.trim() + '=' + param.toWikitext(true).trim();
-                } else {
-                    templateCode += param.title + '=' + String(param);
-                }
-            }
-        }
-
-        templateCode += '}}';
-        return templateCode;
-    }
-
-	toString (): string {
-		return this.toWikitext(false);
-	}
-}
-
-export class Parameter {
-	title: string;
-	indexed: boolean;
-	text: string = '';
-	templates: Template[] = [];
-
-	constructor (title: string, indexed: boolean) {
-		this.title = title;
-		this.indexed = indexed;
-	}
-
-	addTemplate (templ: Template) {
-		this.templates.push(templ);
-	}
-
-	setText (text: string) {
-		this.text = text;
-	}
-
-	toWikitext (removeWhitespace: boolean): string {
-		let wikitext = this.text;
-		if (removeWhitespace) {
-			wikitext = wikitext.trim();
-		}
-
-        for (let template of this.templates) {
-            let templateCode = template.toWikitext(removeWhitespace);
-            wikitext = wikitext.replace('##TEMPLATE:' + template.index + '##', templateCode);
-        }
-
-        return wikitext;
-	}
-
-	toString (): string {
-		return this.toWikitext(false);
-	}
-}
-
-export default class GetTemplates extends BotAction {
-	opt: GetTemplatesOptions;
-	
-	constructor (opt: GetTemplatesOptions) {
-		super();
-		this.opt = opt;
+        this.pageTitle = title;
+        this.pageSection = section;
 	}
 
 	async exc (): Promise<BotActionReturn> {
-		await this.opt.setText();
-		const res = JSON.parse(await RequestHandler.post(this.opt));
+		await this.setText();
+        const query = this.createQuery();
+		const res = JSON.parse(await this.bot.getRequestSender().post(query));
 		const xmlData = res.expandtemplates.parsetree;
 		const xmlParser = new XMLParser(xmlData);
 		const jsonCode =  xmlParser.parse();
 		const templates = this.parseTags(jsonCode);
 		return new BotActionReturn(undefined, templates);
 	}
+
+    async setText () {
+		const gw = new GetWikitext(this.bot, this.pageTitle, this.pageSection);
+		const res = await gw.exc();
+		this.pageContent = res.data as string;
+    }
 
 	parseTags (root: NormalTag): Template[] {
 		const templList: Template[] = []
@@ -213,4 +127,18 @@ export default class GetTemplates extends BotAction {
 		}
 		param.setText(text);
 	}
+
+    createQuery (): GetTemplatesQuery {
+        const query: GetTemplatesQuery = {
+            action: 'expandtemplates',
+            prop: 'parsetree',
+            title: this.pageTitle,
+            text: this.pageContent || '',
+            format: 'json'
+        };
+        if (this.pageContent === undefined) {
+            //todo log error
+        }
+        return query;
+    }
 }

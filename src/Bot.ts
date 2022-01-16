@@ -1,60 +1,87 @@
 import fs from 'fs';
 import { Logger } from './Logger';
 import { actionReturnType, Page, Section, tokenType, pageType, pageListFilter } from './global-types';
-import BotAction from './actions/BotAction';
-import { LoginOptions } from './actions/Login/LoginOptions';
-import Login from './actions/Login/Login';
-import { EditOptions } from './actions/Edit/EditOptions';
-import Edit from './actions/Edit/Edit';
-import { MoveOptions } from './actions/Move/MoveOptions';
-import Move from './actions/Move/Move';
-import { RevertOptions } from './actions/Revert/RevertOptions';
-import Revert from './actions/Revert/Revert';
-import { UploadOptions } from './actions/Upload/UploadOptions';
-import Upload from './actions/Upload/Upload';
-import { GetCatMembersOptions } from './actions/GetCatMembers/GetCatMembersOptions';
-import GetCatMembers from './actions/GetCatMembers/GetCatMembers';
-import { GetTemplatesOptions } from './actions/GetTemplates/GetTemplatesOptions';
-import GetTemplates, { Template } from './actions/GetTemplates/GetTemplates';
-import { GetWikitextOptions } from './actions/GetWikitext/GetWikitextOptions';
-import GetWikitext from './actions/GetWikitext/GetWikitext';
-import { GetSectionsOptions } from './actions/GetSections/GetSectionsOptions';
-import GetSections from './actions/GetSections/GetSections';
-import { GetTokenOptions } from './actions/GetToken/GetTokenOptions';
-import GetToken from './actions/GetToken/GetToken';
-import RequestHandler from './RequestHandler';
+import { BotAction } from './actions/BotAction';
+import { Login } from './actions/Login/Login';
+import { Edit } from './actions/Edit/Edit';
+import { Move } from './actions/Move/Move';
+import { Revert } from './actions/Revert/Revert';
+import { Upload } from './actions/Upload/Upload';
+import { GetCatMembers } from './actions/GetCatMembers/GetCatMembers';
+import { GetTemplates } from './actions/GetTemplates/GetTemplates';
+import { GetWikitext } from './actions/GetWikitext/GetWikitext';
+import { GetSections } from './actions/GetSections/GetSections';
+import { GetToken } from './actions/GetToken/GetToken';
+import { RequestSender } from './RequestSender';
 import { UnsolvableProblemException } from './exceptions/UnsolvableProblemException';
 import { LOG_DIR, LOG_URL_LIST_PATH } from './constants';
+import { GetPagesOptions } from './actions/GetPages/GetPagesOptions';
+import { Template } from '.';
 
 export class Bot {
-	static username: string;
-	static password: string;
-	static url: string;
-	static logger: Logger;
-	static taskId = -1;
-	static noLogs = false;
-	static reLogin = true;
+	username: string;
+	password: string;
+	url: string;
+	taskId = -1;
+	noLogs = false;
+	reLogin = true;
+
+    logger: Logger;
+    requestSender: RequestSender;
 
 	constructor (username: string, password: string, url: string, noLogs?: boolean, reLogin = true) {
-		Bot.username = username;
-		Bot.password = password;
-		Bot.url = url;
+		this.username = username;
+		this.password = password;
+		this.url = url;
 		if (noLogs !== undefined) {
-			Bot.noLogs = noLogs;
+			this.noLogs = noLogs;
 		}
-		Bot.logger = new Logger();
-		if (!Bot.noLogs) {
-			Bot.logger.initDirStructure();
+		this.logger = new Logger(this);
+		if (!this.noLogs) {
+			this.logger.initDirStructure();
 		}
-		Bot.reLogin = reLogin;
+		this.reLogin = reLogin;
+
+        this.requestSender = new RequestSender(this);
 	}
+
+    getUrl (): string {
+        return this.url;
+    }
+
+    getUsername (): string {
+        return this.username;
+    }
+
+    getTaskId (): number {
+        return this.taskId;
+    }
+
+    getNoLogs (): boolean {
+        return this.noLogs;
+    }
+
+    getReLogin (): boolean {
+        return this.reLogin;
+    }
+
+    /**
+	 * @returns Logger
+	 */
+	getLogger (): Logger {
+		//for logger.saveMsg(txt) that's supposed to be called by the user if wanted
+		return this.logger
+	}
+
+    getRequestSender (): RequestSender {
+        return this.requestSender;
+    }
 
 	/**
 	 * @returns Promise<''>
 	 */
 	login (): Promise<string> {
-		const loginOpt = new LoginOptions(Bot.username, Bot.password);
-		const login = new Login(loginOpt);
+		const login = new Login(this, this.password);
 		return this.action(login) as Promise<string>;
 	}
 
@@ -69,12 +96,8 @@ export class Bot {
 	 * 
 	 * @throws BadTokenError, PageDoesNotExistError, ProtectedPageError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	edit (title: string | Page, text: string, summary: string, nocreate?: boolean, section?: string | number): Promise<string> {
-		const eOpts = new EditOptions(String(title), text, summary, section);
-		if (nocreate !== undefined) {
-			eOpts.setNoCreate(nocreate);
-		}
-		const edit = new Edit(eOpts);
+	edit (title: string | Page, text: string, summary: string, section?: string | number, nocreate?: boolean): Promise<string> {
+		const edit = new Edit(this, String(title), text, summary, section, nocreate);
 		return this.action(edit) as Promise<string>;
 	}
 
@@ -96,11 +119,7 @@ export class Bot {
 		moveSubpgabes = true,
 		noredirect = true
 	): Promise<string> {
-		const moveOpts = new MoveOptions(String(from), String(to), summary);
-		if (!moveTalk || !moveSubpgabes || !noredirect) {
-			moveOpts.setAdvancedSettings(moveTalk, moveSubpgabes, noredirect);
-		}
-		const move = new Move(moveOpts);
+		const move = new Move(this, String(from), String(to), summary, moveTalk, moveSubpgabes, noredirect);
 		return this.action(move) as Promise<string>;
 	}
 
@@ -112,8 +131,7 @@ export class Bot {
 	 * @returns Promise<''>
 	 */
 	revert (user: string, start?: Date, end?: Date): Promise<string> {
-		const revOpts = new RevertOptions(user, start, end);
-		const revert = new Revert(revOpts, this);
+		const revert = new Revert(this, user, start, end);
 		return this.action(revert) as Promise<string>;
 	}
 
@@ -130,19 +148,11 @@ export class Bot {
 		uploadType: 'local' | 'remote',
 		wantedName: string,
 		comment: string,
-		url: string,
+		fileLocator: string,
 		ignoreWarnings?: boolean,
 		cutServerResponse?: boolean
 	): Promise<string> {
-		const uploadOpts = new UploadOptions(uploadType, wantedName, comment);
-		uploadOpts.setFileUrl(url);
-		if (ignoreWarnings !== undefined) {
-			uploadOpts.setIgnoreWarnings(ignoreWarnings);
-		}
-		if (cutServerResponse !== undefined) {
-			uploadOpts.setCutServerResponse(cutServerResponse);
-		}
-		const upload = new Upload(uploadOpts);
+		const upload = new Upload(this, uploadType, wantedName, comment, fileLocator, ignoreWarnings, cutServerResponse);
 		return this.action(upload) as Promise<string>;
 	}
 
@@ -157,10 +167,26 @@ export class Bot {
 		category: string,
         types?: pageType | pageListFilter
 	): Promise<Page[]> {
-		const getCatMembersOpts = new GetCatMembersOptions(category, types);
-		const getCatMembers = new GetCatMembers(getCatMembersOpts);
+		const getCatMembers = new GetCatMembers(this, category, types);
 		return this.action(getCatMembers) as Promise<Page[]>;
 	}
+
+    /* getNamespaceMembers ( ns: namespace ): Promise<Page[]> {
+		const getNamespaceMembersOpts = new GetNamespaceMembersOptions( ns );
+		const getNamespaceMembers = new GetNamespaceMembers( getNamespaceMembersOpts );
+		return this.action( getNamespaceMembers ) as Promise<Page[]>;
+	} */
+
+    // /**
+    //  */
+    // public getPages (
+    //     groupIdentifier: 'all' | namespace | categoryName | (namespace | categoryName)[],
+    //     types?: pageType | namespace | (pageType | namespace)[]
+    // ) {
+    //     const getPagesOptions = new GetPagesOptions(groupIdentifier, types);
+    //     const getPages = new GetPages(getPagesOptions);
+    //     return this.action(getPages) as Promise<Page[]>;
+    // }
 
 	/**
 	 * @param title (string | CatMember) page name
@@ -171,8 +197,7 @@ export class Bot {
 	 * @throws SectionNotFoundError
 	 */
 	getTemplates (title: string | Page, section?: string | number): Promise<Template[]> {
-		const getTemplatesOpts = new GetTemplatesOptions(String(title), section);
-		const getTemplates = new GetTemplates(getTemplatesOpts);
+		const getTemplates = new GetTemplates(this, String(title), section);
 		return this.action(getTemplates) as Promise<Template[]>;
 	}
 
@@ -185,8 +210,7 @@ export class Bot {
 	 * @throws PageDoesNotExistError, SectionNotFoundError, UnsolvableErrorError
 	 */
 	getWikitext (page: string | Page, section?: string | number): Promise<string> {
-		const getWikitextOpts = new GetWikitextOptions(String(page), section);
-		const getWikitext = new GetWikitext(getWikitextOpts);
+		const getWikitext = new GetWikitext(this, String(page), section);
 		return this.action(getWikitext) as Promise<string>;
 	}
 
@@ -198,8 +222,7 @@ export class Bot {
 	 * @throws SectionNotFoundError
 	 */
 	getSections (page: string | Page): Promise<Section[]> {
-		const getSectionsOpts = new GetSectionsOptions(String(page));
-		const getSections = new GetSections(getSectionsOpts);
+		const getSections = new GetSections(this, String(page));
 		return this.action(getSections) as Promise<Section[]>;
 	}
 
@@ -209,8 +232,7 @@ export class Bot {
 	 * @throws CantGetTokenError
 	 */
 	getToken (type: tokenType): Promise<string> {
-		const getTokenOpts = new GetTokenOptions(type);
-		const getToken = new GetToken(getTokenOpts);
+		const getToken = new GetToken(this, type);
 		return this.action(getToken) as Promise<string>;
 	}
 
@@ -220,7 +242,7 @@ export class Bot {
 	 * @returns Promise<string>
 	 */
 	get (opts: any): Promise<string> {
-		return RequestHandler.rawGet(opts);
+		return this.requestSender.rawGet(opts);
 	}
 
 	/**
@@ -229,18 +251,7 @@ export class Bot {
 	 * @returns Promise<string>
 	 */
 	post (opts: any): Promise<string> {
-		return RequestHandler.rawPost(opts);
-	}
-
-	/**
-	 * @returns Logger
-	 */
-	getLogger (): Logger | null {
-		//for logger.saveMsg(txt) that's supposed to be called by the user if wanted
-		if (Bot.noLogs) {
-			return null;
-		}
-		return Bot.logger;
+		return this.requestSender.rawPost(opts);
 	}
 
 	//removes log files that only have the login logged
@@ -279,7 +290,7 @@ export class Bot {
 		try {
 			result = await task.exc();
 		} catch (e) {
-			if (!Bot.reLogin) {
+			if (!this.reLogin) {
 				throw e;
 			}
 
@@ -292,7 +303,7 @@ export class Bot {
 			}
 		}
 
-		Bot.logger.save(result.status);
+		this.logger.save(result.status);
 		if (result.data !== '') {
 			return result.data;
 		} else {

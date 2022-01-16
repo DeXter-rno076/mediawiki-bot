@@ -1,20 +1,37 @@
-import BotAction from "../BotAction";
-import { LoginOptions } from "./LoginOptions";
+import { APIAction } from "../APIAction";
 import BotActionReturn from "../BotActionReturn";
-import RequestHandler from "../../RequestHandler";
 import LogEntry from "../../LogEntry";
+import { Bot } from "../..";
+import { LoginQuery } from "./LoginQuery";
 
-export default class Login extends BotAction {
-	opt: LoginOptions;
+export class Login extends APIAction {
+	username: string;
+    password: string;
+    loginreturnurl: string;
 
-	constructor (opt: LoginOptions) {
-		super();
-		this.opt = opt;
-	}
+	constructor (bot: Bot, password: string) {
+		super(bot);
+        this.username = bot.getUsername();
+        this.password = password;
+        this.loginreturnurl = bot.getUrl();
+    }
 
 	async exc (): Promise<BotActionReturn> {
-		const res = await RequestHandler.post(this.opt);
+        const query = this.createQuery();
+		const res = await this.bot.getRequestSender().post(query);
 		const logEntry = new LogEntry('clientlogin', res);
 		return new BotActionReturn(logEntry, '');
 	}
+
+    createQuery (): LoginQuery {
+        const query: LoginQuery = {
+            action: 'clientlogin',
+            username: this.username,
+            password: this.password,
+            loginreturnurl: this.loginreturnurl,
+            format: 'json'
+        };
+
+        return query;
+    }
 }

@@ -1,12 +1,9 @@
 import { Bot } from '../../Bot';
-import { RevertOptions } from "./RevertOptions";
-import BotAction from "../BotAction";
+import { BotAction } from '../BotAction';
 import fs from 'fs';
-import RequestHandler from '../../RequestHandler';
-import { GetRevisionsOptions } from "../GetRevisions/GetRevisionsOptions";
-import { UndoOptions } from '../Undo/UndoOptions';
-import Undo from '../Undo/Undo';
+import { Undo } from '../Undo/Undo';
 import BotActionReturn from '../BotActionReturn';
+import { GetRevisionsQuery } from '../GetRevisions/GetRevisionsQuery';
 
 interface Revision {
 	userid: number,
@@ -18,67 +15,100 @@ interface Revision {
 	title: string
 }
 
-export default class Revert extends BotAction {
-	opt: RevertOptions;
-	bot: Bot;
+export class Revert extends BotAction {
+    user: string;
+    start?: Date;
+    end?: Date;
+
+    revisionsContinueKey = '';
 	revisions: Revision[] = [];
 
-	constructor (opt: RevertOptions, bot: Bot) {
-		super();
-		this.opt = opt;
-		this.bot = bot;
-	}
+	constructor (bot: Bot, user: string, start?: Date, end?: Date) {
+		super(bot);
+        if (user === 'self') {
+            this.user = this.bot.getUsername();
+        } else {
+            this.user = user;
+        }
+        if (start !== undefined) {
+            this.start = start;
+        }
+        if (end !== undefined) {
+            this.end = end;
+        }
+    }
 
 	async exc (): Promise<BotActionReturn> {
-		if (this.opt.user === 'self') {
-			const botTasks = JSON.parse(fs.readFileSync(Bot.logger.MAINLOG_PATH, {encoding: 'utf8'}));
+		if (this.user === this.bot.getUsername()) {
+			const botTasks = JSON.parse(fs.readFileSync(this.bot.getLogger().MAINLOG_PATH, {encoding: 'utf8'}));
 			const lastBotTask = botTasks[botTasks.length - 2];
-			const timestamp = lastBotTask.timestamp as string;
-			const timestampDate = new Date(timestamp);
-			const revOpts = new GetRevisionsOptions(Bot.username, timestampDate);
-			await this.getRevisions(revOpts);
+			const lastBotTaskTimestamp = lastBotTask.timestamp as string;
+			const lastBotTaskStartingPoint = new Date(lastBotTaskTimestamp);
+            this.start = lastBotTaskStartingPoint;
+			await this.getRevisions();
 		} else {
-			const opts = this.opt;
-			const revOpts = new GetRevisionsOptions(opts.user, opts.start, opts.end);
-			await this.getRevisions(revOpts);
+			await this.getRevisions();
 		}
 		await this.revert();
 
 		return new BotActionReturn(undefined, '');
 	}
 
-	async getRevisions (revOpts: GetRevisionsOptions) {
-		let continueKey = '';
+	async getRevisions () {
 		do {
-			continueKey = await this.getRevisionsPart(revOpts);
-			revOpts.setContinue(continueKey);
-		} while (continueKey !== '');
+			await this.getRevisionsPart();
+		} while (this.revisionsContinueKey !== '');
 	}
 
-	async getRevisionsPart (revOpts: GetRevisionsOptions): Promise<string> {
-		const res = JSON.parse(await RequestHandler.get(revOpts));
+	async getRevisionsPart () {
+        const query = this.createGetRevisionsQuery();
+        if (this.revisionsContinueKey !== '') {
+            query.uccontinue = this.revisionsContinueKey;
+        }
+		const res = JSON.parse(await this.bot.getRequestSender().get(query));
 		this.revisions = this.revisions.concat(res.query.usercontribs);
 		if (res.continue !== undefined) {
-			return res.continue.uccontinue as string;
-		}
-		return '';
+			this.revisionsContinueKey = res.continue.uccontinue as string;
+		} else {
+            this.revisionsContinueKey = '';
+        }
 	}
 
 	async revert () {
 		for (let rev of this.revisions) {
-			const undoOptions = new UndoOptions(rev.title, rev.revid);
-			const undo = new Undo(undoOptions);
+			const undo = new Undo(this.bot, rev.title, rev.revid);
 			try {
 				await this.bot.action(undo);
 			} catch (e) {
 				if (e instanceof Error) {
 					const eMsg = 'Error in revert edit: ' + e.message;
 					console.error(eMsg);
-					Bot.logger.saveMsg(eMsg)
+					this.bot.getLogger().saveMsg(eMsg)
 				} else {
 					console.error('for some reason e in try catch clause in Revert.ts wasnt an error');
 				}
 			}
 		}
 	}
+
+    createGetRevisionsQuery (): GetRevisionsQuery {
+        const query: GetRevisionsQuery = {
+            action: 'query',
+            list: 'usercontribs',
+            uclimit: 'max',
+            ucuser: this.user,
+            ucprop: 'ids|title',
+            format: 'json'
+        };
+
+        //it's intended that start and end are switched because mediawiki's scheme of start and end time is imo. unintuitive
+        if (this.start !== undefined) {
+            query.ucend = this.start.toISOString();
+        }
+        if (this.end !== undefined) {
+            query.ucstart = this.end.toISOString();
+        }
+
+        return query;
+    }
 }

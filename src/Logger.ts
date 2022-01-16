@@ -9,12 +9,16 @@ interface MainlogEntry {
 }
 
 export class Logger {
+    bot: Bot;
+
 	URL_INDEX = -1;
 	URL_DIR_PATH = '';
 	MAINLOG_PATH = '';
 	LOG_FILE_PATH = '';
 
-	constructor () {}
+	constructor (bot: Bot) {
+        this.bot = bot;
+    }
 
 	initDirStructure () {
 		try {
@@ -36,7 +40,8 @@ export class Logger {
 			this.createLogFile();
 		}
 
-		if (Bot.taskId === -1) {
+		if (this.bot.taskId === -1) {
+            //todo
 			throw 'something went wrong in logger initialization. Task id still has starting value';
 		}
 	}
@@ -62,7 +67,7 @@ export class Logger {
 
 		const lastTaskId = mainLogData[mainLogData.length - 1].id as number;
 
-		Bot.taskId = lastTaskId + 1;
+		this.bot.taskId = lastTaskId + 1;
 	}
 
 	//=====================================================
@@ -76,18 +81,18 @@ export class Logger {
 		fs.mkdirSync(this.URL_DIR_PATH);
 
 		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
-		urlList[Bot.url] = this.URL_INDEX;
+		urlList[this.bot.url] = this.URL_INDEX;
 		fs.writeFileSync(LOG_URL_LIST_PATH, JSON.stringify(urlList));
 
 		fs.writeFileSync(this.MAINLOG_PATH, '[]');
 
-		Bot.taskId = 0;
+		this.bot.taskId = 0;
 	}
 
 	//=====================================================
 
 	createLogFile () {
-		this.LOG_FILE_PATH = `${this.URL_DIR_PATH}/${Bot.taskId}.txt`;
+		this.LOG_FILE_PATH = `${this.URL_DIR_PATH}/${this.bot.taskId}.txt`;
 		fs.writeFileSync(this.LOG_FILE_PATH, '');
 
 		this.addNewMainLogEntry();
@@ -98,7 +103,7 @@ export class Logger {
 
 		const time = new Date();
 		const taskLog: MainlogEntry = {
-			id: Bot.taskId,
+			id: this.bot.taskId,
 			timestamp: time.toISOString()
 		}
 
@@ -110,7 +115,7 @@ export class Logger {
 
 	getUrlIndex (): number {
 		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
-		const urlIndex = urlList[Bot.url] as number | undefined;
+		const urlIndex = urlList[this.bot.url] as number | undefined;
 
 		if (urlIndex === undefined) {
 			const keys = Object.keys(urlList);
@@ -132,14 +137,14 @@ export class Logger {
 
 		const txt = msg.print();
 		console.log(txt);
-		if (!Bot.noLogs) {
+		if (!this.bot.noLogs) {
 			fs.appendFileSync(this.LOG_FILE_PATH, txt + '\n');
 		}
 	}
 
 	//supposed to be called by the user
 	saveMsg (msg: string) {
-		if (Bot.noLogs) {
+		if (this.bot.noLogs) {
 			console.error('cant save custom messages when noLogs is set to true');
 			return;
 		}

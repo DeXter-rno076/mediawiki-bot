@@ -1,21 +1,22 @@
-import BotAction from "../BotAction";
-import RequestHandler from "../../RequestHandler";
+import { APIAction } from "../APIAction";
 import BotActionReturn from "../BotActionReturn";
-import { GetTokenOptions } from './GetTokenOptions';
 
-import { CantGetTokenException } from "../..";
+import { Bot, CantGetTokenException, tokenType } from "../..";
+import { GetTokenQuery } from "./GetTokenQuery";
+import { mwActionType } from "../../global-types";
 
-export default class GetToken extends BotAction {
+export class GetToken extends APIAction {
 	readonly MAX_RETRYS = 5;
+    tokenType: tokenType;
 
-	opt: GetTokenOptions;
-	constructor (opt: GetTokenOptions) {
-		super();
-		this.opt = opt;
-	}
+	constructor (bot: Bot, tokenType: tokenType) {
+		super(bot);
+        this.tokenType = tokenType;
+    }
 
 	async exc (): Promise<BotActionReturn> {
-		const response = await RequestHandler.get(this.opt);
+        const query = this.createQuery();
+		const response = await this.bot.getRequestSender().get(query);
 		let serverData;
 		try {
 			serverData = JSON.parse(response);
@@ -24,14 +25,15 @@ export default class GetToken extends BotAction {
 			serverData = await this.retry();
 		}
 		//last property can be logintoken and csrftoken depending on type
-		const token = serverData.query.tokens[this.opt.type + 'token'] as string;
+		const token = serverData.query.tokens[this.tokenType + 'token'] as string;
 		const res = new BotActionReturn(undefined, token);
 		return res;
 	}
 
 	async retry (): Promise<Object> {
+        const getTokenQuery = this.createQuery();
 		for (let i = 0; i < this.MAX_RETRYS; i++) {
-			const resp = await RequestHandler.get(this.opt);
+			const resp = await this.bot.getRequestSender().get(getTokenQuery);
 			try {
 				const parsedRes = JSON.parse(resp);
 				return parsedRes;
@@ -41,4 +43,22 @@ export default class GetToken extends BotAction {
 		}
 		throw new CantGetTokenException();
 	}
+
+    static getTokenType (action: mwActionType): tokenType {
+		if (action === 'clientlogin') {
+			return 'login';
+		}
+		return 'csrf';
+	}
+
+    createQuery (): GetTokenQuery {
+        const query: GetTokenQuery = {
+            action: 'query',
+            meta: 'tokens',
+            type: this.tokenType,
+            format: 'json'
+        };
+
+        return query;
+    }
 }

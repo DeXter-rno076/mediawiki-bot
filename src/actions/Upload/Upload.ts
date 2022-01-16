@@ -1,23 +1,40 @@
-import BotAction from "../BotAction";
-import { UploadOptions } from "./UploadOptions";
+import { APIAction } from "../APIAction";
 import BotActionReturn from "../BotActionReturn";
-import RequestHandler from "../../RequestHandler";
 import LogEntry from "../../LogEntry";
+import { Bot } from "../..";
+import { UploadQuery } from "./UploadQuery";
 
-export default class Upload extends BotAction {
-	cutServerResponse = true;
-	opt: UploadOptions;
+export class Upload extends APIAction {
+	uploadType: 'local' | 'remote';
+    fileName: string;
+    comment: string;
+    fileLocator: string;
+    ignoreWarnings: boolean;
+    
+    cutServerResponse: boolean;
 
-	constructor (opt: UploadOptions) {
-		super();
-		this.opt = opt;
+	constructor (
+        bot: Bot,
+        uploadType: 'local' | 'remote',
+        fileName: string,
+        comment: string,
+        fileLocator: string,
+        ignorewarnings = false,
+        cutServerResponse = true
+    ) {
+		super(bot);
 
-		//this.opt.cutServerResponse get deleted shortly before sending the request, but the value is needed afterwards => needs to get saved 
-		this.cutServerResponse = opt.cutServerResponse;
+        this.uploadType = uploadType;
+        this.fileName = fileName;
+        this.comment = comment;
+        this.fileLocator = fileLocator;
+        this.ignoreWarnings = ignorewarnings;
+        this.cutServerResponse = cutServerResponse;
 	}
 
 	async exc (): Promise<BotActionReturn> {
-		let res = await RequestHandler.post(this.opt);
+        const query = this.createQuery();
+		let res = await this.bot.getRequestSender().post(query);
 
 		if (this.cutServerResponse) {
 			const parsedRes = JSON.parse(res);
@@ -28,4 +45,20 @@ export default class Upload extends BotAction {
 		const logEntry = new LogEntry('upload', res);
 		return new BotActionReturn(logEntry, '');
 	}
+
+    createQuery (): UploadQuery {
+        const query: UploadQuery = {
+            action: 'upload',
+            filename: this.fileName,
+            comment: this.comment,
+            ignorewarnings: this.ignoreWarnings,
+            format: 'json'
+        };
+
+        if (this.uploadType === 'remote') {
+            query.url = this.fileLocator;
+        }
+
+        return query;
+    }
 }

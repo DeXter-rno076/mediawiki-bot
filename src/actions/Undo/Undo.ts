@@ -1,26 +1,29 @@
 import BotActionReturn from "../BotActionReturn";
 import LogEntry from "../../LogEntry";
-import { UndoOptions } from "./UndoOptions";
-import RequestHandler from "../../RequestHandler";
-import BotAction from "../BotAction";
 import { ErrorResponse } from "../../global-types";
 
-import { BadTokenException } from '../..';
+import { BadTokenException, Bot } from '../..';
 import { UnsolvableProblemException } from '../..';
 import { NoRevIdException } from "../..";
 import { UndoFailureException } from "../..";
+import { APIAction } from "../APIAction";
+import { UndoQuery } from "./UndoQuery";
 
-export default class Undo extends BotAction {
-	readonly MAX_RETRYS = 5;
-	opt: UndoOptions;
+export class Undo extends APIAction {
+    title: string;
+    revid: number;
 
-	constructor (opt: UndoOptions) {
-		super();
-		this.opt = opt;
+    readonly MAX_RETRYS = 5;
+
+	constructor (bot: Bot, title: string, revid: number) {
+		super(bot);
+        this.title = title;
+        this.revid = revid;
 	}
-	
+
 	async exc (): Promise<BotActionReturn> {
-		let res = await RequestHandler.post(this.opt);
+        const query = this.createQuery();
+		let res = await this.bot.getRequestSender().post(query);
 
 		const parsedResult = JSON.parse(res);
 		if (parsedResult.error !== undefined) {
@@ -36,7 +39,8 @@ export default class Undo extends BotAction {
 		switch (eCode) {
 			case 'badtoken':
 				for (let i = 0; i < this.MAX_RETRYS; i++) {
-					const res = await RequestHandler.post(this.opt);
+                    const query = this.createQuery();
+					const res = await this.bot.getRequestSender().post(query);
 					const parsedRes = JSON.parse(res);
 					if (parsedRes.error === undefined) {
 						return res;
@@ -44,10 +48,21 @@ export default class Undo extends BotAction {
 				}
 				throw new BadTokenException();
 			case 'nosuchrevid':
-				throw new NoRevIdException(parsedRes.error.info, this.opt.title);
+				throw new NoRevIdException(parsedRes.error.info, this.title);
 			case 'undofailure':
-				throw new UndoFailureException(this.opt.title);
+				throw new UndoFailureException(this.title);
 		}
 		throw new UnsolvableProblemException(eCode);
 	}
+
+    createQuery (): UndoQuery {
+        const query: UndoQuery = {
+            action: 'edit',
+            title: this.title,
+            undo: this.revid,
+            bot: true,
+            format: 'json',
+        };
+        return query;
+    }
 }

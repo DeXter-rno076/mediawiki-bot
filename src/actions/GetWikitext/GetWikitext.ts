@@ -1,32 +1,36 @@
-import BotAction from "../BotAction";
-import { GetWikitextOptions } from "./GetWikitextOptions";
-import RequestHandler from "../../RequestHandler";
+import { APIAction } from "../APIAction";
 import BotActionReturn from "../BotActionReturn";
-import GetSections from "../GetSections/GetSections";
-import { GetSectionsOptions } from "../GetSections/GetSectionsOptions";
+import { GetSections } from "../GetSections/GetSections";
 import { ErrorResponse } from "../../global-types";
 
-import { PageDoesNotExistException } from "../..";
+import { Bot, PageDoesNotExistException } from "../..";
 import { UnsolvableProblemException } from "../..";
+import { isNum } from "../../utils";
+import { GetWikitextQuery } from "./GetWikitextQuery";
 
-export default class GetWikitext extends BotAction {
-	opt: GetWikitextOptions;
+export class GetWikitext extends APIAction {
+    pageTitle: string;
+    pageSection?: string | number;
+    pageSectionIndex?: number;
 
-	constructor (opt: GetWikitextOptions) {
-		super();
-		this.opt = opt;
-	}
+	constructor (bot: Bot, pageTitle: string, pageSection?: string | number) {
+		super(bot);
+        this.pageTitle = pageTitle;
+        this.pageSection = pageSection
+    }
 
 	async exc (): Promise<BotActionReturn> {
-		if (this.opt.section !== undefined && isNaN(Number(this.opt.section))) {
+		if (this.pageSection !== undefined && !isNum(this.pageSection)) {
 			await this.setSectionIndex();
 		}
 
-		let response = await RequestHandler.get(this.opt);
+        const query = this.createQuery();
+		let response = await this.bot.getRequestSender().get(query);
 		let res;
 		try {
 			res = JSON.parse(response);
 		} catch (e) {
+            //todo
 			console.log(response);
 		}
 		
@@ -39,17 +43,29 @@ export default class GetWikitext extends BotAction {
 	}
 
 	async setSectionIndex () {
-		const gSectionsOpts = new GetSectionsOptions(this.opt.page);
-		const gSections = new GetSections(gSectionsOpts);
-		const index = await gSections.getIndex(this.opt.section as string) as number;
-		this.opt.section = index;
+		const gSections = new GetSections(this.bot, this.pageTitle);
+		const index = await gSections.getIndex(this.pageSection as string) as number;
+		this.pageSectionIndex = index;
 	}
 
 	async handleError (res: ErrorResponse): Promise<string> {
 		const eCode = res.error.code;
 		if (eCode === 'missingtitle') {
-			throw new PageDoesNotExistException(this.opt.page, 'getWikitext');
+			throw new PageDoesNotExistException(this.pageTitle, 'getWikitext');
 		}
 		throw new UnsolvableProblemException(eCode);
 	}
+
+    createQuery (): GetWikitextQuery {
+        const query: GetWikitextQuery = {
+            action: 'parse',
+            page: this.pageTitle,
+            prop: 'wikitext',
+            format: 'json'
+        };
+        if (this.pageSection !== undefined) {
+            query.section = String(this.pageSectionIndex);
+        }
+        return query;
+    }
 }
