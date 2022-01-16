@@ -12,16 +12,16 @@ import { isNum } from '../../utils';
 import { EditQuery } from './EditQuery';
 
 export class Edit extends APIAction {
-	readonly MAX_RETRYS = 5;
+	private readonly MAX_RETRYS = 5;
 
-    pageTitle: string;
-    newPageText: string;
-    editSummary: string;
-    pageSection?: string | number;
-    sectionIndex?: number;
-    nocreate = true;
+    private pageTitle: string;
+    private newPageText: string;
+    private editSummary: string;
+    private pageSection?: string | number;
+    private sectionIndex?: number;
+    private nocreate = true;
 
-	constructor (
+	public constructor (
         bot: Bot,
         title: string,
         text: string,
@@ -41,7 +41,7 @@ export class Edit extends APIAction {
         }
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         await this.setSectionIndex();
         const editQuery = this.createQuery();
 		let res = await this.bot.getRequestSender().post(editQuery);
@@ -55,7 +55,7 @@ export class Edit extends APIAction {
 		return new BotActionReturn(logEntry, '');
 	}
 
-    async setSectionIndex () {
+    private async setSectionIndex () {
         if (this.pageSection === undefined) {
             return;
         }
@@ -66,13 +66,13 @@ export class Edit extends APIAction {
         this.sectionIndex = await this.getSectionIndex();
     }
 
-	async getSectionIndex (): Promise<number> {
+	private async getSectionIndex (): Promise<number> {
 		const getSections = new GetSections(this.bot, this.pageTitle);
 		const sectionIndex = await getSections.getIndex(this.pageSection as string) as number;
 		return sectionIndex;
 	}
 
-	async handleError (parsedRes: ErrorResponse): Promise<string> {
+	private async handleError (parsedRes: ErrorResponse): Promise<string> {
 		const eCode = parsedRes.error.code;
 		switch (eCode) {
 			case 'badtoken':
@@ -93,7 +93,7 @@ export class Edit extends APIAction {
 		throw new UnsolvableProblemException(eCode);
 	}
 
-    createQuery (): EditQuery {
+    protected createQuery (): EditQuery {
         const query: EditQuery = {
             action: 'edit',
             title: this.pageTitle,

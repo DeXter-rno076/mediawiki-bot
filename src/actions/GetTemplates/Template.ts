@@ -1,25 +1,33 @@
 import { Parameter } from "./Parameter";
 
 export class Template {
-	_title: string;
-	index: number;
-	params: Parameter[] = [];
+	private _title: string;
+	private index: number;
+	private params: Parameter[] = [];
 
-	constructor (title: string, index: number) {
+	public constructor (title: string, index: number) {
 		this._title = title;
 		this.index = index;
 	}
 
-	get title (): string {
+	public get title (): string {
 		return this._title.trim();
 	}
+
+    public getIndex (): number {
+        return this.index;
+    }
+
+    public getParams (): Parameter[] {
+        return this.params;
+    }
 
 	//supposed to be called by the user
 	//every parameter name should be unique (no need to optionally return arrays)
 	//for indexed params just use their number (keep in mind: PARAM INDICES START AT 1)
-	getParam (name: string): Parameter | null {
+	public getParam (name: string): Parameter | null {
 		const param = this.params.find((item) => {
-			return item.title === name;
+			return item.getTitle() === name;
 		});
 		if (param === undefined) {
 			return null;
@@ -27,11 +35,11 @@ export class Template {
 		return param;
 	}
 
-	addParam (param: Parameter) {
+	public addParam (param: Parameter) {
 		this.params.push(param);
 	}
 
-	toWikitext (removeWhitespace: boolean) {
+	public toWikitext (removeWhitespace: boolean) {
         let templateCode = '{{' + this._title;
 		if (removeWhitespace) {
 			templateCode = templateCode.trim();
@@ -39,7 +47,7 @@ export class Template {
 
         for (let param of this.params) {
             templateCode += '|';
-            if (param.indexed) {
+            if (param.getIndexed()) {
 				if (removeWhitespace) {
 					templateCode += String(param).trim();
 				} else {
@@ -47,9 +55,9 @@ export class Template {
 				}
             } else {
                 if (removeWhitespace) {
-                    templateCode += param.title.trim() + '=' + param.toWikitext(true).trim();
+                    templateCode += param.getTitle().trim() + '=' + param.toWikitext(true).trim();
                 } else {
-                    templateCode += param.title + '=' + String(param);
+                    templateCode += param.getTitle() + '=' + String(param);
                 }
             }
         }
@@ -58,7 +66,7 @@ export class Template {
         return templateCode;
     }
 
-	toString (): string {
+	public toString (): string {
 		return this.toWikitext(false);
 	}
 }

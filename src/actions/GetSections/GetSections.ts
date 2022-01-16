@@ -20,23 +20,23 @@ import { GetSectionsQuery } from "./GetSectionsQuery";
  */
 
 export class GetSections extends APIAction {
-	page: string;
+	private page: string;
 
-    constructor (bot: Bot, page: string) {
+    public constructor (bot: Bot, page: string) {
 		super(bot);
         this.page = page;
     }
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         const getSectionsQuery = this.createQuery();
 		const res = JSON.parse(await this.bot.getRequestSender().get(getSectionsQuery));
 		const sections = res.parse.sections as Section[];
 		return new BotActionReturn(undefined, sections);
 	}
 
-	async getIndex (sectionName: string): Promise<number> {
+	public async getIndex (sectionName: string): Promise<number> {
 		const data = await this.exc();
-		const sections = data.data as Section[];
+		const sections = data.getData() as Section[];
 
 		for (let section of sections) {
 			if (section.line.trim() === sectionName.trim()) {
@@ -46,7 +46,7 @@ export class GetSections extends APIAction {
 		throw new SectionNotFoundException(sectionName, this.page);
 	}
 
-    createQuery (): GetSectionsQuery {
+    protected createQuery (): GetSectionsQuery {
         const query: GetSectionsQuery = {
             action: 'parse',
             prop: 'sections',

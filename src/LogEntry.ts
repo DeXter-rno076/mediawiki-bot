@@ -1,15 +1,15 @@
 import { logActionType } from './global-types';
 
 export default class LogEntry {
-	type: logActionType;
-	msg: string;
+	private type: logActionType;
+	private msg: string;
 
-	constructor (type: logActionType, msg: string) {
+	public constructor (type: logActionType, msg: string) {
 		this.type = type;
 		this.msg = msg;
 	}
 
-	print (): string {
+	public print (): string {
 		return `${this.type}: ${this.msg}`;
 	}
 }

@@ -1,25 +1,41 @@
 import { Template } from "./Template";
 
 export class Parameter {
-	title: string;
-	indexed: boolean;
-	text: string = '';
-	templates: Template[] = [];
+	private title: string;
+	private indexed: boolean;
+	private text: string = '';
+	private templates: Template[] = [];
 
-	constructor (title: string, indexed: boolean) {
+	public constructor (title: string, indexed: boolean) {
 		this.title = title;
 		this.indexed = indexed;
 	}
 
-	addTemplate (templ: Template) {
+    public getTitle (): string {
+        return this.title;
+    }
+
+    public getIndexed (): boolean {
+        return this.indexed;
+    }
+
+    public getText (): string {
+        return this.text;
+    }
+
+    public getTemplates (): Template[] {
+        return this.templates;
+    }
+
+	public addTemplate (templ: Template) {
 		this.templates.push(templ);
 	}
 
-	setText (text: string) {
+	public setText (text: string) {
 		this.text = text;
 	}
 
-	toWikitext (removeWhitespace: boolean): string {
+	public toWikitext (removeWhitespace: boolean): string {
 		let wikitext = this.text;
 		if (removeWhitespace) {
 			wikitext = wikitext.trim();
@@ -27,13 +43,13 @@ export class Parameter {
 
         for (let template of this.templates) {
             let templateCode = template.toWikitext(removeWhitespace);
-            wikitext = wikitext.replace('##TEMPLATE:' + template.index + '##', templateCode);
+            wikitext = wikitext.replace('##TEMPLATE:' + template.getIndex() + '##', templateCode);
         }
 
         return wikitext;
 	}
 
-	toString (): string {
+	public toString (): string {
 		return this.toWikitext(false);
 	}
 }

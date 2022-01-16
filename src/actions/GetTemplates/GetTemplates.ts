@@ -9,18 +9,18 @@ import { Parameter } from './Parameter';
 import { GetTemplatesQuery } from './GetTemplatesQuery';
 
 export class GetTemplates extends APIAction {
-    pageTitle: string;
-    pageSection?: string | number;
-    pageContent?: string;
+    private pageTitle: string;
+    private pageSection?: string | number;
+    private pageContent?: string;
 
-    constructor (bot: Bot, title: string, section?: string | number) {
+    public constructor (bot: Bot, title: string, section?: string | number) {
 		super(bot);
 
         this.pageTitle = title;
         this.pageSection = section;
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
 		await this.setText();
         const query = this.createQuery();
 		const res = JSON.parse(await this.bot.getRequestSender().post(query));
@@ -31,17 +31,17 @@ export class GetTemplates extends APIAction {
 		return new BotActionReturn(undefined, templates);
 	}
 
-    async setText () {
+    public async setText () {
 		const gw = new GetWikitext(this.bot, this.pageTitle, this.pageSection);
 		const res = await gw.exc();
-		this.pageContent = res.data as string;
+		this.pageContent = res.getData() as string;
     }
 
-	parseTags (root: NormalTag): Template[] {
+	public parseTags (root: NormalTag): Template[] {
 		const templList: Template[] = []
-		const tags = root.content.tags;
+		const tags = root.getContent().tags;
 		for (let tag of tags) {
-			if (tag.title === 'template') {
+			if (tag.getTitle() === 'template') {
 				const templ = this.parseTemplate(tag as NormalTag);
 				if (templ !== undefined) {
 					templList.push(templ);
@@ -51,19 +51,19 @@ export class GetTemplates extends APIAction {
 		return templList;
 	}
 
-	parseTemplate (template: NormalTag): Template | undefined {
-		const templateContent = template.content;
+	public parseTemplate (template: NormalTag): Template | undefined {
+		const templateContent = template.getContent();
 		const nameObj = templateContent.tags.find((item) => {
-			return item.title === 'title';
+			return item.getTitle() === 'title';
 		}) as NormalTag;
 		if (nameObj === undefined) {
 			console.error('couldnt find name of template: ' + template);
 			return;
 		}
-		const name = nameObj.content.text;
-		const templObj = new Template(name, template.index);
-		for (let tag of template.content.tags) {
-			if (tag.title === 'part') {
+		const name = nameObj.getContent().text;
+		const templObj = new Template(name, template.getIndex());
+		for (let tag of template.getContent().tags) {
+			if (tag.getTitle() === 'part') {
 				const param = this.parseParameter(tag as NormalTag);
 				templObj.addParam(param);
 			}
@@ -71,13 +71,13 @@ export class GetTemplates extends APIAction {
 		return templObj;
 	}
 
-	parseParameter (param: NormalTag): Parameter {
-		const tags = param.content.tags;
+	public parseParameter (param: NormalTag): Parameter {
+		const tags = param.getContent().tags;
 		const nameObj = tags.find((item) => {
-			return item.title === 'name';
+			return item.getTitle() === 'name';
 		});
 		const valueObj = tags.find((item) => {
-			return item.title === 'value';
+			return item.getTitle() === 'value';
 		});
 		if (nameObj === undefined || valueObj === undefined) {
 			console.error('couldnt find name and value of parameter');
@@ -86,22 +86,22 @@ export class GetTemplates extends APIAction {
 
 		let name = this.getParamName(nameObj);;
 
-		const paramObj = new Parameter(name, nameObj.singleTag);
+		const paramObj = new Parameter(name, nameObj.getSingleTag());
 
-		if (valueObj.singleTag) {
+		if (valueObj.getSingleTag()) {
 			paramObj.setText('');
 		} else {
-			const value = (valueObj as NormalTag).content;
+			const value = (valueObj as NormalTag).getContent();
 			this.addParamContentTemplates(paramObj, value);
 		}
 		return paramObj;
 	}
 
-	getParamName (nameObj: Tag): string {
-		if (!nameObj.singleTag) {
-			return (nameObj as NormalTag).content.text;
+	public getParamName (nameObj: Tag): string {
+		if (!nameObj.getSingleTag()) {
+			return (nameObj as NormalTag).getContent().text;
 		}
-		const index = nameObj.attributes.get('index');
+		const index = nameObj.getAttributes().get('index');
 		if (index === undefined) {
 			console.error('couldn find index of single tag: ' + JSON.stringify(nameObj));
 			return 'ERROR';
@@ -109,13 +109,13 @@ export class GetTemplates extends APIAction {
 		return index;
 	}
 
-	addParamContentTemplates (param: Parameter, value: TagContent) {
+	public addParamContentTemplates (param: Parameter, value: TagContent) {
 		let text = value.text;
 		const tags = value.tags;
 
 		for (let tag of tags) {
-			const index = tag.index;
-			if (tag.title === 'template') {
+			const index = tag.getIndex();
+			if (tag.getTitle() === 'template') {
 				text = text.replace(`##TAG:${index}##`, `##TEMPLATE:${index}##`);
 				const template = this.parseTemplate(tag as NormalTag);
 				if (template !== undefined) {
@@ -128,7 +128,7 @@ export class GetTemplates extends APIAction {
 		param.setText(text);
 	}
 
-    createQuery (): GetTemplatesQuery {
+    protected createQuery (): GetTemplatesQuery {
         const query: GetTemplatesQuery = {
             action: 'expandtemplates',
             prop: 'parsetree',

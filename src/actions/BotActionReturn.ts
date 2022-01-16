@@ -2,10 +2,10 @@ import LogEntry from '../LogEntry';
 import { actionReturnType } from '../global-types';
 
 export default class BotActionReturn {
-	status?: LogEntry;
-	data?: actionReturnType;
+	private status?: LogEntry;
+	private data?: actionReturnType;
 
-	constructor (status?: LogEntry, data?: actionReturnType) {
+	public constructor (status?: LogEntry, data?: actionReturnType) {
 		if (status !== undefined) {
 			this.status = status;
 		}
@@ -13,4 +13,12 @@ export default class BotActionReturn {
 			this.data = data;
 		}
 	}
+
+    public getStatus (): LogEntry | undefined {
+        return this.status;
+    }
+
+    public getData (): actionReturnType | undefined {
+        return this.data;
+    }
 }

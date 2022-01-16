@@ -4,37 +4,63 @@ export interface TagContent {
 }
 
 export abstract class Tag {
-	title: string;
-	index: number;
-	singleTag: boolean = false;
-	attributes: Map<string, string> = new Map();
+	protected title: string;
+	protected index: number;
+	protected singleTag: boolean;
+	protected attributes: Map<string, string> = new Map();
 
-	constructor (title: string, index: number) {
+	constructor (title: string, index: number, singleTag: boolean) {
 		this.title = title;
 		this.index = index;
+        this.singleTag = singleTag;
 	}
+
+    public getTitle (): string {
+        return this.title;
+    }
+
+    public getIndex (): number {
+        return this.index;
+    }
+
+    public getSingleTag (): boolean {
+        return this.singleTag;
+    }
+
+    public getAttributes (): Map<string, string> {
+        return this.attributes;
+    }
 }
 
 export class NormalTag extends Tag {
-	singleTag = false;
-	content: TagContent = {
+	private content: TagContent = {
 		text: '',
 		tags: []
 	};
+
+    public constructor (title: string, index: number) {
+        super(title, index, false);
+    }
+
+    public getContent (): TagContent {
+        return this.content;
+    }
 }
 
 class SingleTag extends Tag {
-	singleTag = true;
+    public constructor (title: string, index: number) {
+        super(title, index, true);
+    }
 }
 
 export class XMLParser {
-	xmlCode: string;
+	private xmlCode: string;
 
-	constructor (xml: string) {
+	public constructor (xml: string) {
 		this.xmlCode = xml.replace(/\\"/g, '"');
 	}
 
-	parse (): NormalTag {
+	public parse (): NormalTag {
 		const xml = this.xmlCode;
 		const root = new NormalTag('root', 0);
 		this.handleAttributes(root, xml);
@@ -43,14 +69,14 @@ export class XMLParser {
 		return root;
 	}
 
-	parseTagCode (curRoot: NormalTag, xml: string): number {
+	private parseTagCode (curRoot: NormalTag, xml: string): number {
 		let indexPointer = 0;
 
 		//end of xml string probably wont be reached because of the return condition
 		while (indexPointer < xml.length) {
 			const nextTag = xml.indexOf('<', indexPointer);
 			const pureText = xml.substring(indexPointer, nextTag);
-			curRoot.content.text += pureText;
+			curRoot.getContent().text += pureText;
 
 			if (xml.charAt(nextTag + 1) === '/') {
 				//closing tag reached
@@ -71,7 +97,7 @@ export class XMLParser {
 	}
 
 	handleNormalTag (root: NormalTag, xml: string): number {
-		const rootContent = root.content;
+		const rootContent = root.getContent();
 
 		const tagName = this.getNormalTagName(xml);
 		const tagIndex = rootContent.tags.length;
@@ -89,7 +115,7 @@ export class XMLParser {
 	}
 
 	handleSingleTag (root: NormalTag, xml: string) {
-		const rootContent = root.content;
+		const rootContent = root.getContent();
 		
 		const tagName = this.getSingleTagName(xml);
 		const tagIndex = rootContent.tags.length;
@@ -124,7 +150,7 @@ export class XMLParser {
 
 			const attrName = regexRes[1];
 			const attrValue = regexRes[2];
-			tag.attributes.set(attrName, attrValue);
+			tag.getAttributes().set(attrName, attrValue);
 		}
 	}
 
@@ -158,11 +184,11 @@ export class XMLParser {
 	}
 
 	replaceUnicodeAndHTMLEntities (root: NormalTag) {
-		if (root.content === undefined) {
+		if (root.getContent() === undefined) {
 			return;
 		}
 
-		const rootContent = root.content;
+		const rootContent = root.getContent();
 		const rootText = rootContent.text;
 
 		//replacing unicode
@@ -170,8 +196,8 @@ export class XMLParser {
 		//replacing common HTML entities
 		rootContent.text = rootText.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 
-		for (let tag of root.content.tags) {
-			if (tag.singleTag) {
+		for (let tag of root.getContent().tags) {
+			if (tag.getSingleTag()) {
 				continue;
 			}
 			this.replaceUnicodeAndHTMLEntities(tag as NormalTag);

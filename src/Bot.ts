@@ -294,7 +294,7 @@ export class Bot {
 				throw e;
 			}
 
-			if (e instanceof UnsolvableProblemException && e.eType === 'assertbotfailed') {
+			if (e instanceof UnsolvableProblemException && e.getEType() === 'assertbotfailed') {
 				console.log('bot got logged out, logging in and trying again');
 				await this.login();
 				result = await task.exc();

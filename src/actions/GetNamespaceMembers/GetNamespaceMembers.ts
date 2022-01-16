@@ -7,13 +7,13 @@ import BotActionReturn from "../BotActionReturn";
 import { GetNamespaceMembersQuery } from "./GetNamespaceMembersQuery";
 
 export class GetNamspaceMembers extends APIAction {
-    namespaceIndex: number;
+    private namespaceIndex: number;
     
-    currentContinueKey = '';
+    private currentContinueKey = '';
 
-    namespaceMembers: Page[] = [];
+    private namespaceMembers: Page[] = [];
 
-    constructor (bot: Bot, ns: namespace) {
+    public constructor (bot: Bot, ns: namespace) {
         super(bot);
         //todo check for invalid ns values
         if (isNum(ns)) {
@@ -23,7 +23,7 @@ export class GetNamspaceMembers extends APIAction {
 		}
     }
 
-    async exc (): Promise<BotActionReturn> {
+    public async exc (): Promise<BotActionReturn> {
         do {
             await this.getNamespaceMembersPart();
         } while (this.currentContinueKey !== '');
@@ -31,7 +31,7 @@ export class GetNamspaceMembers extends APIAction {
         return new BotActionReturn(undefined, this.namespaceMembers);
     }
 
-    async getNamespaceMembersPart () {
+    private async getNamespaceMembersPart () {
         const getNamespaceMembersQuery = this.createQuery();
         if (this.currentContinueKey !== '') {
             getNamespaceMembersQuery.apcontinue = this.currentContinueKey;
@@ -47,14 +47,14 @@ export class GetNamspaceMembers extends APIAction {
         }
     }
 
-    addNamespaceMembers (namespaceMembersPart) {
+    private addNamespaceMembers (namespaceMembersPart) {
         for (let obj of namespaceMembersPart) {
             const namespaceMember = new Page(obj.ns, obj.title);
             this.namespaceMembers.push(namespaceMember);
         }
     }
 
-    createQuery (): GetNamespaceMembersQuery {
+    protected createQuery (): GetNamespaceMembersQuery {
         const query: GetNamespaceMembersQuery = {
             action: 'query',
             list: 'allpages',

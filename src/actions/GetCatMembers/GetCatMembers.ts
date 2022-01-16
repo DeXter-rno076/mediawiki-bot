@@ -7,14 +7,14 @@ import { isNum, isPageType, pageTypeToNS } from "../../utils";
 import { GetCatMembersQuery } from "./GetCatMembersQuery";
 
 export class GetCatMembers extends APIAction {
-    categoryName: string;
-    namespacesList = '0';
+    private categoryName: string;
+    private namespacesList = '0';
 
-	catMembers: Page[] = [];
+	private catMembers: Page[] = [];
 
-    currentContinueKey = '';
+    private currentContinueKey = '';
 
-	constructor (bot: Bot, category: string, types?: pageType | pageListFilter) {
+	public constructor (bot: Bot, category: string, types?: pageType | pageListFilter) {
 		super(bot);
         this.categoryName = category;
         if (types !== undefined) {
@@ -22,7 +22,7 @@ export class GetCatMembers extends APIAction {
         }
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
 		do {
 			await this.getCatMembersPart();
 		} while (this.currentContinueKey !== '');
@@ -30,7 +30,7 @@ export class GetCatMembers extends APIAction {
 		return new BotActionReturn(undefined, this.catMembers);
 	}
 
-	async getCatMembersPart () {
+	private async getCatMembersPart () {
         const getCatMembersQuery = this.createQuery();
         if (this.currentContinueKey !== '') {
             getCatMembersQuery.cmcontinue = this.currentContinueKey;
@@ -51,14 +51,14 @@ export class GetCatMembers extends APIAction {
         }
 	}
 
-	addCatMembers (catMembersPart) {
+	private addCatMembers (catMembersPart) {
 		for (let obj of catMembersPart) {
 			const catMember = new Page(obj.ns, obj.title);
 			this.catMembers.push(catMember);
 		}
 	}
 
-    setNamespacesList (types: pageType | pageListFilter) {
+    private setNamespacesList (types: pageType | pageListFilter) {
         if (Array.isArray(types)) {
             this.setPageListFilterAsNamespaceList(types as pageListFilter);
         } else {
@@ -109,7 +109,7 @@ export class GetCatMembers extends APIAction {
         return nsIdentifier as number;
     }
 
-    createQuery (): GetCatMembersQuery {
+    protected createQuery (): GetCatMembersQuery {
         const query: GetCatMembersQuery = {
             action: 'query',
             cmtitle: this.categoryName,

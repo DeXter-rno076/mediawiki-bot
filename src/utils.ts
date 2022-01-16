@@ -1,5 +1,5 @@
 import { NAMESPACES, PAGE_TYPES } from "./constants";
-import { namespace, pageType } from "./global-types";
+import { pageType } from "./global-types";
 
 export function isNum ( x: any ): boolean {
 	return !isNaN(Number(x));
@@ -24,7 +24,7 @@ export function isPageType (x: any): boolean {
     return PAGE_TYPES.includes(x);
 }
 
-export function pageTypeToNS (pageType: pageType): namespace | null {
+export function pageTypeToNS (pageType: pageType): number | null {
     switch (pageType) {
         case 'file':
             return NAMESPACES['File'];

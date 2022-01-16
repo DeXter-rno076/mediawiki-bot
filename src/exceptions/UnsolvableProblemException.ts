@@ -1,7 +1,7 @@
 export class UnsolvableProblemException extends Error {
-	eType: string;
+	private eType: string;
 
-	constructor(eCode: string) {
+	public constructor(eCode: string) {
 		super('uncommon problem or a problem the Bot cant solve occured: ' + eCode);
 
 		this.eType = eCode;
@@ -10,4 +10,8 @@ export class UnsolvableProblemException extends Error {
 			Error.captureStackTrace(this, UnsolvableProblemException);
 		}
 	}
+
+    public getEType (): string {
+        return this.eType;
+    }
 }

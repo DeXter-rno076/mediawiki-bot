@@ -5,15 +5,15 @@ import { Bot } from "../..";
 import { UploadQuery } from "./UploadQuery";
 
 export class Upload extends APIAction {
-	uploadType: 'local' | 'remote';
-    fileName: string;
-    comment: string;
-    fileLocator: string;
-    ignoreWarnings: boolean;
+	private uploadType: 'local' | 'remote';
+    private fileName: string;
+    private comment: string;
+    private fileLocator: string;
+    private ignoreWarnings: boolean;
     
-    cutServerResponse: boolean;
+    private cutServerResponse: boolean;
 
-	constructor (
+	public constructor (
         bot: Bot,
         uploadType: 'local' | 'remote',
         fileName: string,
@@ -32,7 +32,7 @@ export class Upload extends APIAction {
         this.cutServerResponse = cutServerResponse;
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         const query = this.createQuery();
 		let res = await this.bot.getRequestSender().post(query);
 
@@ -46,7 +46,7 @@ export class Upload extends APIAction {
 		return new BotActionReturn(logEntry, '');
 	}
 
-    createQuery (): UploadQuery {
+    protected createQuery (): UploadQuery {
         const query: UploadQuery = {
             action: 'upload',
             filename: this.fileName,

@@ -2,9 +2,9 @@ import { Bot } from '..';
 import BotActionReturn from './BotActionReturn';
 
 export abstract class BotAction {
-    bot: Bot;
+    protected bot: Bot;
     
-    constructor (bot: Bot) {
+    protected constructor (bot: Bot) {
         this.bot = bot;
     }
 

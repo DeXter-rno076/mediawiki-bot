@@ -5,14 +5,14 @@ import { Bot } from "../..";
 import { MoveQuery } from "./MoveQuery";
 
 export class Move extends APIAction {
-    from: string;
-    to: string;
-    reason: string;
-    movetalk: boolean;
-    movesubpages: boolean;
-    noredirect: boolean;
+    private from: string;
+    private to: string;
+    private reason: string;
+    private movetalk: boolean;
+    private movesubpages: boolean;
+    private noredirect: boolean;
 
-	constructor (
+	public constructor (
         bot: Bot,
         from: string,
         to: string,
@@ -30,14 +30,14 @@ export class Move extends APIAction {
         this.noredirect = noredirect;
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         const query = this.createQuery();
 		const res = await this.bot.getRequestSender().post(query);
 		const logEntry = new LogEntry('move', res);
 		return new BotActionReturn(logEntry, '');
 	}
 
-    createQuery (): MoveQuery {
+    protected createQuery (): MoveQuery {
         const query: MoveQuery = {
             action: 'move',
             from: this.from,

@@ -1,5 +1,5 @@
 export class NoRevIdException extends Error {
-	constructor (info: string, title: string) {
+	public constructor (info: string, title: string) {
 		let unfoundID = 'id not found';
 		const idregex = /There is no revision with ID (.*)\./;
 		const regexRes = idregex.exec(info);

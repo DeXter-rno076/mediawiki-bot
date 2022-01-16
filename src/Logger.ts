@@ -9,18 +9,22 @@ interface MainlogEntry {
 }
 
 export class Logger {
-    bot: Bot;
+    private bot: Bot;
 
-	URL_INDEX = -1;
-	URL_DIR_PATH = '';
-	MAINLOG_PATH = '';
-	LOG_FILE_PATH = '';
+	private URL_INDEX = -1;
+	private URL_DIR_PATH = '';
+	private MAINLOG_PATH = '';
+	private LOG_FILE_PATH = '';
 
-	constructor (bot: Bot) {
+	public constructor (bot: Bot) {
         this.bot = bot;
     }
 
-	initDirStructure () {
+    public getMainlogPath (): string {
+        return this.MAINLOG_PATH;
+    }
+
+	public initDirStructure () {
 		try {
 			//accesSync throws an error if it cant reach the targeted path
 			fs.accessSync(LOG_DIR, fs.constants.F_OK);
@@ -30,7 +34,7 @@ export class Logger {
 				fs.accessSync(this.URL_DIR_PATH, fs.constants.F_OK);
 
 				//url directory already exists
-				this.getTaskId();
+				this.retrieveTaskId();
 			} catch (e) {
 				this.createUrlDirectory();
 			}
@@ -48,19 +52,19 @@ export class Logger {
 
 	//=====================================================
 
-	createEntireDirStructure () {
+	private createEntireDirStructure () {
 		this.createLogDirectory();
 		this.setUrlDirPaths();
 		this.createUrlDirectory();
 	}
 
-	setUrlDirPaths () {
+	private setUrlDirPaths () {
 		this.URL_INDEX = this.getUrlIndex();
 		this.URL_DIR_PATH = LOG_DIR + '/' + this.URL_INDEX;
 		this.MAINLOG_PATH = this.URL_DIR_PATH + '/mainlog.json';
 	}
 
-	getTaskId () {
+	private retrieveTaskId () {
 		const mainLogData = JSON.parse(fs.readFileSync(
 			this.MAINLOG_PATH, {encoding: 'utf8'}
 		)) as MainlogEntry[];
@@ -72,12 +76,12 @@ export class Logger {
 
 	//=====================================================
 
-	createLogDirectory () {
+	private createLogDirectory () {
 		fs.mkdirSync(LOG_DIR);
 		fs.writeFileSync(LOG_URL_LIST_PATH, '{}');
 	}
 
-	createUrlDirectory () {
+	private createUrlDirectory () {
 		fs.mkdirSync(this.URL_DIR_PATH);
 
 		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
@@ -91,14 +95,14 @@ export class Logger {
 
 	//=====================================================
 
-	createLogFile () {
+	private createLogFile () {
 		this.LOG_FILE_PATH = `${this.URL_DIR_PATH}/${this.bot.taskId}.txt`;
 		fs.writeFileSync(this.LOG_FILE_PATH, '');
 
 		this.addNewMainLogEntry();
 	}
 
-	addNewMainLogEntry () {
+	private addNewMainLogEntry () {
 		const mainLogData = JSON.parse(fs.readFileSync(this.MAINLOG_PATH, {encoding: 'utf-8'})) as MainlogEntry[];
 
 		const time = new Date();
@@ -113,7 +117,7 @@ export class Logger {
 
 	//=====================================================
 
-	getUrlIndex (): number {
+	private getUrlIndex (): number {
 		const urlList = JSON.parse(fs.readFileSync(LOG_URL_LIST_PATH, {encoding: 'utf-8'}));
 		const urlIndex = urlList[this.bot.url] as number | undefined;
 
@@ -130,7 +134,7 @@ export class Logger {
 	}
 
 	//is called from one central place in class Bot
-	save (msg?: LogEntry) {
+	public save (msg?: LogEntry) {
 		if (msg === undefined) {
 			return;
 		}
@@ -143,7 +147,7 @@ export class Logger {
 	}
 
 	//supposed to be called by the user
-	saveMsg (msg: string) {
+	public saveMsg (msg: string) {
 		if (this.bot.noLogs) {
 			console.error('cant save custom messages when noLogs is set to true');
 			return;

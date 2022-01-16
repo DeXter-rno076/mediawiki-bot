@@ -10,18 +10,18 @@ import { APIAction } from "../APIAction";
 import { UndoQuery } from "./UndoQuery";
 
 export class Undo extends APIAction {
-    title: string;
-    revid: number;
+    private title: string;
+    private revid: number;
 
     readonly MAX_RETRYS = 5;
 
-	constructor (bot: Bot, title: string, revid: number) {
+	public constructor (bot: Bot, title: string, revid: number) {
 		super(bot);
         this.title = title;
         this.revid = revid;
 	}
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         const query = this.createQuery();
 		let res = await this.bot.getRequestSender().post(query);
 
@@ -34,7 +34,7 @@ export class Undo extends APIAction {
 		return new BotActionReturn(logEntry, '');
 	}
 
-	async handleError (parsedRes: ErrorResponse): Promise<string> {
+	private async handleError (parsedRes: ErrorResponse): Promise<string> {
 		const eCode = parsedRes.error.code;
 		switch (eCode) {
 			case 'badtoken':
@@ -55,7 +55,7 @@ export class Undo extends APIAction {
 		throw new UnsolvableProblemException(eCode);
 	}
 
-    createQuery (): UndoQuery {
+    protected createQuery (): UndoQuery {
         const query: UndoQuery = {
             action: 'edit',
             title: this.title,

@@ -1,7 +1,7 @@
 import { logActionType } from "../global-types";
 
 export class PageDoesNotExistException extends Error {
-	constructor (page: string, actionType: logActionType) {
+	public constructor (page: string, actionType: logActionType) {
 		let eMessage = '';
 		switch (actionType) {
 			case 'edit':

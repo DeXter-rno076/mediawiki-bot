@@ -6,15 +6,15 @@ import { GetTokenQuery } from "./GetTokenQuery";
 import { mwActionType } from "../../global-types";
 
 export class GetToken extends APIAction {
-	readonly MAX_RETRYS = 5;
-    tokenType: tokenType;
+	private readonly MAX_RETRYS = 5;
+    private tokenType: tokenType;
 
-	constructor (bot: Bot, tokenType: tokenType) {
+	public constructor (bot: Bot, tokenType: tokenType) {
 		super(bot);
         this.tokenType = tokenType;
     }
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
         const query = this.createQuery();
 		const response = await this.bot.getRequestSender().get(query);
 		let serverData;
@@ -30,7 +30,7 @@ export class GetToken extends APIAction {
 		return res;
 	}
 
-	async retry (): Promise<Object> {
+	private async retry (): Promise<Object> {
         const getTokenQuery = this.createQuery();
 		for (let i = 0; i < this.MAX_RETRYS; i++) {
 			const resp = await this.bot.getRequestSender().get(getTokenQuery);
@@ -44,14 +44,14 @@ export class GetToken extends APIAction {
 		throw new CantGetTokenException();
 	}
 
-    static getTokenType (action: mwActionType): tokenType {
+    public static getTokenType (action: mwActionType): tokenType {
 		if (action === 'clientlogin') {
 			return 'login';
 		}
 		return 'csrf';
 	}
 
-    createQuery (): GetTokenQuery {
+    protected createQuery (): GetTokenQuery {
         const query: GetTokenQuery = {
             action: 'query',
             meta: 'tokens',

@@ -16,14 +16,14 @@ interface Revision {
 }
 
 export class Revert extends BotAction {
-    user: string;
-    start?: Date;
-    end?: Date;
+    private user: string;
+    private start?: Date;
+    private end?: Date;
 
-    revisionsContinueKey = '';
-	revisions: Revision[] = [];
+    private revisionsContinueKey = '';
+	private revisions: Revision[] = [];
 
-	constructor (bot: Bot, user: string, start?: Date, end?: Date) {
+	public constructor (bot: Bot, user: string, start?: Date, end?: Date) {
 		super(bot);
         if (user === 'self') {
             this.user = this.bot.getUsername();
@@ -38,9 +38,9 @@ export class Revert extends BotAction {
         }
     }
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
 		if (this.user === this.bot.getUsername()) {
-			const botTasks = JSON.parse(fs.readFileSync(this.bot.getLogger().MAINLOG_PATH, {encoding: 'utf8'}));
+			const botTasks = JSON.parse(fs.readFileSync(this.bot.getLogger().getMainlogPath(), {encoding: 'utf8'}));
 			const lastBotTask = botTasks[botTasks.length - 2];
 			const lastBotTaskTimestamp = lastBotTask.timestamp as string;
 			const lastBotTaskStartingPoint = new Date(lastBotTaskTimestamp);
@@ -54,13 +54,13 @@ export class Revert extends BotAction {
 		return new BotActionReturn(undefined, '');
 	}
 
-	async getRevisions () {
+	private async getRevisions () {
 		do {
 			await this.getRevisionsPart();
 		} while (this.revisionsContinueKey !== '');
 	}
 
-	async getRevisionsPart () {
+	private async getRevisionsPart () {
         const query = this.createGetRevisionsQuery();
         if (this.revisionsContinueKey !== '') {
             query.uccontinue = this.revisionsContinueKey;
@@ -74,7 +74,7 @@ export class Revert extends BotAction {
         }
 	}
 
-	async revert () {
+	private async revert () {
 		for (let rev of this.revisions) {
 			const undo = new Undo(this.bot, rev.title, rev.revid);
 			try {
@@ -91,7 +91,7 @@ export class Revert extends BotAction {
 		}
 	}
 
-    createGetRevisionsQuery (): GetRevisionsQuery {
+    private createGetRevisionsQuery (): GetRevisionsQuery {
         const query: GetRevisionsQuery = {
             action: 'query',
             list: 'usercontribs',

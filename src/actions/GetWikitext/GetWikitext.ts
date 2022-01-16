@@ -9,17 +9,17 @@ import { isNum } from "../../utils";
 import { GetWikitextQuery } from "./GetWikitextQuery";
 
 export class GetWikitext extends APIAction {
-    pageTitle: string;
-    pageSection?: string | number;
-    pageSectionIndex?: number;
+    private pageTitle: string;
+    private pageSection?: string | number;
+    private pageSectionIndex?: number;
 
-	constructor (bot: Bot, pageTitle: string, pageSection?: string | number) {
+	public constructor (bot: Bot, pageTitle: string, pageSection?: string | number) {
 		super(bot);
         this.pageTitle = pageTitle;
         this.pageSection = pageSection
     }
 
-	async exc (): Promise<BotActionReturn> {
+	public async exc (): Promise<BotActionReturn> {
 		if (this.pageSection !== undefined && !isNum(this.pageSection)) {
 			await this.setSectionIndex();
 		}
@@ -42,13 +42,13 @@ export class GetWikitext extends APIAction {
 		return new BotActionReturn(undefined, wikitext);
 	}
 
-	async setSectionIndex () {
+	private async setSectionIndex () {
 		const gSections = new GetSections(this.bot, this.pageTitle);
 		const index = await gSections.getIndex(this.pageSection as string) as number;
 		this.pageSectionIndex = index;
 	}
 
-	async handleError (res: ErrorResponse): Promise<string> {
+	private async handleError (res: ErrorResponse): Promise<string> {
 		const eCode = res.error.code;
 		if (eCode === 'missingtitle') {
 			throw new PageDoesNotExistException(this.pageTitle, 'getWikitext');
@@ -56,7 +56,7 @@ export class GetWikitext extends APIAction {
 		throw new UnsolvableProblemException(eCode);
 	}
 
-    createQuery (): GetWikitextQuery {
+    protected createQuery (): GetWikitextQuery {
         const query: GetWikitextQuery = {
             action: 'parse',
             page: this.pageTitle,
