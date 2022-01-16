@@ -19,17 +19,17 @@ import { GetPagesOptions } from './actions/GetPages/GetPagesOptions';
 import { Template } from '.';
 
 export class Bot {
-	username: string;
-	password: string;
-	url: string;
-	taskId = -1;
-	noLogs = false;
-	reLogin = true;
+	private username: string;
+	private password: string;
+	private url: string;
+	private taskId = -1;
+	private noLogs = false;
+	private reLogin = true;
 
-    logger: Logger;
-    requestSender: RequestSender;
+    private logger: Logger;
+    private requestSender: RequestSender;
 
-	constructor (username: string, password: string, url: string, noLogs?: boolean, reLogin = true) {
+	public constructor (username: string, password: string, url: string, noLogs?: boolean, reLogin = true) {
 		this.username = username;
 		this.password = password;
 		this.url = url;
@@ -45,42 +45,46 @@ export class Bot {
         this.requestSender = new RequestSender(this);
 	}
 
-    getUrl (): string {
+    public getUrl (): string {
         return this.url;
     }
 
-    getUsername (): string {
+    public getUsername (): string {
         return this.username;
     }
 
-    getTaskId (): number {
+    public getTaskId (): number {
         return this.taskId;
     }
 
-    getNoLogs (): boolean {
+    public setTaskId (id: number) {
+        this.taskId = id;
+    }
+
+    public getNoLogs (): boolean {
         return this.noLogs;
     }
 
-    getReLogin (): boolean {
+    public getReLogin (): boolean {
         return this.reLogin;
     }
 
     /**
 	 * @returns Logger
 	 */
-	getLogger (): Logger {
+	public getLogger (): Logger {
 		//for logger.saveMsg(txt) that's supposed to be called by the user if wanted
 		return this.logger
 	}
 
-    getRequestSender (): RequestSender {
+    public getRequestSender (): RequestSender {
         return this.requestSender;
     }
 
 	/**
 	 * @returns Promise<''>
 	 */
-	login (): Promise<string> {
+	public login (): Promise<string> {
 		const login = new Login(this, this.password);
 		return this.action(login) as Promise<string>;
 	}
@@ -96,7 +100,7 @@ export class Bot {
 	 * 
 	 * @throws BadTokenError, PageDoesNotExistError, ProtectedPageError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	edit (title: string | Page, text: string, summary: string, section?: string | number, nocreate?: boolean): Promise<string> {
+	public edit (title: string | Page, text: string, summary: string, section?: string | number, nocreate?: boolean): Promise<string> {
 		const edit = new Edit(this, String(title), text, summary, section, nocreate);
 		return this.action(edit) as Promise<string>;
 	}
@@ -111,7 +115,7 @@ export class Bot {
 	 * 
 	 * @returns Promise<''>
 	*/
-	move (
+	public move (
 		from: string | Page,
 		to: string | Page,
 		summary: string,
@@ -130,7 +134,7 @@ export class Bot {
 	 * 
 	 * @returns Promise<''>
 	 */
-	revert (user: string, start?: Date, end?: Date): Promise<string> {
+    public revert (user: string, start?: Date, end?: Date): Promise<string> {
 		const revert = new Revert(this, user, start, end);
 		return this.action(revert) as Promise<string>;
 	}
@@ -144,7 +148,7 @@ export class Bot {
 	 * 
 	 * @returns Promise<''>
 	 */
-	upload (
+    public upload (
 		uploadType: 'local' | 'remote',
 		wantedName: string,
 		comment: string,
@@ -163,7 +167,7 @@ export class Bot {
 	 * 
 	 * @returns Promise<CatMember[]>
 	 */
-	getCatMembers (
+    public getCatMembers (
 		category: string,
         types?: pageType | pageListFilter
 	): Promise<Page[]> {
@@ -196,7 +200,7 @@ export class Bot {
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getTemplates (title: string | Page, section?: string | number): Promise<Template[]> {
+    public getTemplates (title: string | Page, section?: string | number): Promise<Template[]> {
 		const getTemplates = new GetTemplates(this, String(title), section);
 		return this.action(getTemplates) as Promise<Template[]>;
 	}
@@ -209,7 +213,7 @@ export class Bot {
 	 * 
 	 * @throws PageDoesNotExistError, SectionNotFoundError, UnsolvableErrorError
 	 */
-	getWikitext (page: string | Page, section?: string | number): Promise<string> {
+    public getWikitext (page: string | Page, section?: string | number): Promise<string> {
 		const getWikitext = new GetWikitext(this, String(page), section);
 		return this.action(getWikitext) as Promise<string>;
 	}
@@ -221,7 +225,7 @@ export class Bot {
 	 * 
 	 * @throws SectionNotFoundError
 	 */
-	getSections (page: string | Page): Promise<Section[]> {
+    public getSections (page: string | Page): Promise<Section[]> {
 		const getSections = new GetSections(this, String(page));
 		return this.action(getSections) as Promise<Section[]>;
 	}
@@ -231,7 +235,7 @@ export class Bot {
 	 * @returns Promise<string>
 	 * @throws CantGetTokenError
 	 */
-	getToken (type: tokenType): Promise<string> {
+    public getToken (type: tokenType): Promise<string> {
 		const getToken = new GetToken(this, type);
 		return this.action(getToken) as Promise<string>;
 	}
@@ -241,7 +245,7 @@ export class Bot {
 	 * @param opts (Object) options object used for the custom request
 	 * @returns Promise<string>
 	 */
-	get (opts: any): Promise<string> {
+    public get (opts: any): Promise<string> {
 		return this.requestSender.rawGet(opts);
 	}
 
@@ -250,12 +254,12 @@ export class Bot {
 	 * @param opts (Object) options object used for the custom request
 	 * @returns Promise<string>
 	 */
-	post (opts: any): Promise<string> {
+    public post (opts: any): Promise<string> {
 		return this.requestSender.rawPost(opts);
 	}
 
 	//removes log files that only have the login logged
-	cleanUpLogfiles () {
+	public cleanUpLogfiles () {
 		const urlListPath = LOG_URL_LIST_PATH;
 		const urlList = JSON.parse(fs.readFileSync(urlListPath, {encoding: 'utf-8'}));
 		for (let url in urlList) {
@@ -263,7 +267,7 @@ export class Bot {
 		}
 	}
 
-	cleanUpLogDir (dir: string) {
+	private cleanUpLogDir (dir: string) {
 		const mainlogFilePath = `${LOG_DIR}/${dir}/mainlog.json`;
 		const mainlog = JSON.parse(fs.readFileSync(mainlogFilePath, {encoding: 'utf8'}));
 		if (mainlog.length === 0) {
@@ -285,7 +289,8 @@ export class Bot {
 		fs.writeFileSync(mainlogFilePath, JSON.stringify(mainlog));
 	}
 
-	async action (task: BotAction): Promise<actionReturnType> {
+    //also used by non api bot actions
+	public async action (task: BotAction): Promise<actionReturnType> {
 		let result;
 		try {
 			result = await task.exc();
