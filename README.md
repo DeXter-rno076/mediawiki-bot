@@ -1,3 +1,10 @@
+Author's note: After 2 years and a few failed rebuilding attempts I don't recommend using this.
+
+It has multiple design flaws and a few features that got implement in a very unclean way. For most cases it should do its job if you consider two things:  
+ * Only use one bot instance. Username etc. are stored in static fields, that means all bot instances work with the user info of the last created one (that's probably the most extreme implementation flaw).
+ * Getting a really generic error about an unexpected '<' means that the server returned an HTML page when the bot expected JSON. In almost all cases you messed something up, that the bot didn't catch.
+
+# TOC
 - [changes in v1.1](#changes-in-v11)
 - [How to use](#how-to-use)
 	- [General info](#general-info)
